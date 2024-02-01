@@ -3,12 +3,9 @@ package com.anicriticas.lolanalyzer;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 
 public class ChampionId {
 

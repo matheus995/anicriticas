@@ -1,6 +1,7 @@
 package com.anicriticas.lolanalyzer.utils;
 
 import com.anicriticas.lolanalyzer.ChampionId;
+import com.anicriticas.lolanalyzer.ChampionsEmojis;
 import com.anicriticas.lolanalyzer.enums.QueueEnum;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -111,6 +112,38 @@ public class MatchUtils {
         for (int i = 0; i < blueSideBans.length(); i++) {
             JSONObject ban = blueSideBans.getJSONObject(i);
             banList.add(ChampionId.getChampionById(String.valueOf(ban.get("championId"))));
+        }
+
+        return banList;
+    }
+
+    public static List<String> getMatchBlueSideBansWithEmojis(JSONObject lastMatch) {
+        JSONArray bans = lastMatch.getJSONObject("info").getJSONArray("teams");
+        JSONObject blueSide = (JSONObject) bans.get(0);
+        JSONArray blueSideBans = blueSide.getJSONArray("bans");
+
+        List<String> banList = new ArrayList<>();
+
+        for (int i = 0; i < blueSideBans.length(); i++) {
+            JSONObject ban = blueSideBans.getJSONObject(i);
+            String championName = ChampionId.getChampionById(String.valueOf(ban.get("championId")));
+            banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
+        }
+
+        return banList;
+    }
+
+    public static List<String> getMatchRedSideBansWithEmojis(JSONObject lastMatch) {
+        JSONArray bans = lastMatch.getJSONObject("info").getJSONArray("teams");
+        JSONObject blueSide = (JSONObject) bans.get(1);
+        JSONArray blueSideBans = blueSide.getJSONArray("bans");
+
+        List<String> banList = new ArrayList<>();
+
+        for (int i = 0; i < blueSideBans.length(); i++) {
+            JSONObject ban = blueSideBans.getJSONObject(i);
+            String championName = ChampionId.getChampionById(String.valueOf(ban.get("championId")));
+            banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
         }
 
         return banList;

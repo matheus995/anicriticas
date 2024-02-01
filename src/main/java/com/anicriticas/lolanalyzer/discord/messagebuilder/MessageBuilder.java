@@ -1,6 +1,7 @@
 package com.anicriticas.lolanalyzer.discord.messagebuilder;
 
 import com.anicriticas.lolanalyzer.ChampionId;
+import com.anicriticas.lolanalyzer.ChampionsEmojis;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -37,7 +38,7 @@ public class MessageBuilder {
             int level = champion.getInt("championLevel");
             long points = champion.getLong("championPoints");
 
-            topChampions.append(String.format("`%d.` %s (Level %d, **%s**)\n", i + 1, championName, level, MatchUtils.humanReadableInt(points)));
+            topChampions.append(String.format("`%d.` %s %s (Level %d, **%s**)\n", i + 1, ChampionsEmojis.getEmojiByChampionName(championName), championName, level, MatchUtils.humanReadableInt(points)));
         }
 
         embedBuilder.addField(String.format("> Top %s Champions", topChampionsMastery.toList().size()), topChampions.toString(), true);
@@ -105,8 +106,9 @@ public class MessageBuilder {
             JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, match);
             String championName = ChampionId.getChampionById(String.valueOf(participant.get("championId")));
 
-            lastMatchesText.append(String.format("`%d.` %s  (%s)\n",
+            lastMatchesText.append(String.format("`%d.`  %s %s  (%s)\n",
                     i + 1,
+                    ChampionsEmojis.getEmojiByChampionName(championName),
                     championName,
                     (MatchUtils.getMatchDate(match.getJSONObject("info").getLong("gameStartTimestamp")))));
         }
@@ -134,7 +136,7 @@ public class MessageBuilder {
             return;
         }
 
-        String[] bannedChampions = {String.format("`Blue team:` %s", String.join(", ", MatchUtils.getMatchBlueSideBans(lastMatch))), String.format("`Red team:` %s", String.join(", ", MatchUtils.getMatchRedSideBans(lastMatch))),};
+        String[] bannedChampions = {String.format("`Blue team:` %s", String.join(" ", MatchUtils.getMatchBlueSideBansWithEmojis(lastMatch))), String.format("`Red team:` %s", String.join(" ", MatchUtils.getMatchRedSideBansWithEmojis(lastMatch))),};
         embedBuilder.addField("> Banned champions", String.join("\n", bannedChampions), false);
     }
 
@@ -158,13 +160,23 @@ public class MessageBuilder {
             String formattedTotalSummonerStats = String.format("(**%s**/**%s**/**%s** **%s CS**)", summonerKills, summonerDeaths, summonerAssists, totalCS);
 
             if (MatchUtils.isBlueSide(participant.getInt("teamId"))) {
-                blueTeamParticipants.append(String.format("%s | %s\n", summonerName, formattedTotalSummonerStats));
+                blueTeamParticipants.append(formatPlayerKdaToFitInOneLine(ChampionsEmojis.getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
             } else {
-                redTeamParticipants.append(String.format("%s | %s\n", summonerName, formattedTotalSummonerStats));
+                redTeamParticipants.append(formatPlayerKdaToFitInOneLine(ChampionsEmojis.getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
             }
         }
 
         embedBuilder.addField("> Blue team", String.join("", blueTeamParticipants), true);
         embedBuilder.addField("> Red team", String.join("", redTeamParticipants), true);
+    }
+
+    private String formatPlayerKdaToFitInOneLine(String championEmoji, String summonerName, String playerStats) {
+        String stringWithoutEmoji = String.format("%s | %s\n", summonerName, playerStats);
+
+        if (stringWithoutEmoji.length() >= 45) {
+            summonerName = summonerName.substring(0, 6) + ".";
+        }
+
+        return String.format("%s %s | %s\n", championEmoji, summonerName, playerStats);
     }
 }
