@@ -14,7 +14,7 @@ public class MessageBuilder {
     public EmbedBuilder embedBuilder = new EmbedBuilder();
 
     public void setThumbnailWithProfileIcon(String profileIconId) {
-        embedBuilder.setThumbnail("https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/" + profileIconId + ".png");
+        embedBuilder.setThumbnail("https://ddragon.leagueoflegends.com/cdn/14.2.1/img/profileicon/" + profileIconId + ".png");
     }
 
     public void setProfileBasicInfo(JSONObject summonerProfile, String riotNickName, RegionEnum region, boolean inline) {
