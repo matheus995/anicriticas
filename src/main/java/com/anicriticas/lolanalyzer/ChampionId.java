@@ -1,11 +1,11 @@
 package com.anicriticas.lolanalyzer;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+
+import static com.anicriticas.lolanalyzer.utils.JsonUtils.getJsonObjectFromUrl;
 
 public class ChampionId {
 
@@ -19,6 +19,10 @@ public class ChampionId {
             throw new RuntimeException(e);
         }
 
+        if (championId.equals("-1")) {
+            return "NoBan";
+        }
+
         for (String championName : champions.keySet()) {
             JSONObject champion = champions.optJSONObject(championName);
             if (champion.getString("key").equals(championId)) {
@@ -26,10 +30,5 @@ public class ChampionId {
             }
         }
         return "Champion not found";
-    }
-
-    public static JSONObject getJsonObjectFromUrl(URL url) throws IOException {
-        String json = IOUtils.toString(url, StandardCharsets.UTF_8);
-        return new JSONObject(json);
     }
 }

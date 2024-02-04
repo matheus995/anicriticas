@@ -1,11 +1,11 @@
 package com.anicriticas.lolanalyzer;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+
+import static com.anicriticas.lolanalyzer.utils.JsonUtils.getJsonObjectFromUrl;
 
 public class ChampionsEmojis {
 
@@ -19,16 +19,15 @@ public class ChampionsEmojis {
             throw new RuntimeException(e);
         }
 
+        if (championName.equalsIgnoreCase("NoBan")) {
+            return emojis.getString("NoBan");
+        }
+
         for (String champion : emojis.keySet()) {
             if (champion.equals(championName)) {
                 return emojis.getString(champion);
             }
         }
         return "Champion Emoji not found";
-    }
-
-    public static JSONObject getJsonObjectFromUrl(URL url) throws IOException {
-        String json = IOUtils.toString(url, StandardCharsets.UTF_8);
-        return new JSONObject(json);
     }
 }
