@@ -6,7 +6,6 @@ import com.anicriticas.lolanalyzer.discord.options.PlayerIdentifierOptions;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
@@ -35,16 +34,17 @@ public class Bot extends ListenerAdapter {
 
         jda.addEventListener(new MatchCommand(), new ProfileCommand());
 
-        Guild guild = jda.getGuildById("1195030988938551350");
-        assert guild != null;
+//        Guild guild = jda.getGuildById("1195030988938551350"); // Anicriticas
+//        assert guild != null;
 
-        guild.upsertCommand("lastmatch", "Retrieve data from last match")
+        //TODO no futuro alterar de guild.upsertCommand para jda.upsertCommand para atribuir o comando a todo servidor que adicionar o bot
+        jda.upsertCommand("lastmatch", "Retrieve data from last match")
                 .addOptions(
                         PlayerIdentifierOptions.getPlayerIdentifierOptions()
                 )
                 .queue();
 
-        guild.upsertCommand("profile", "Retrieve profile data from a summoner")
+        jda.upsertCommand("profile", "Retrieve profile data from a summoner")
                 .addOptions(
                         PlayerIdentifierOptions.getPlayerIdentifierOptions()
                 )
