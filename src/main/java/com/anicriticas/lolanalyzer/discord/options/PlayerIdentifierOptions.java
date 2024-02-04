@@ -15,7 +15,7 @@ public class PlayerIdentifierOptions {
     public static List<OptionData> getPlayerIdentifierOptions() {
         OptionData nickNameOption = new OptionData(OptionType.STRING, PlayerIdentifierOptions.riotNickNameOption, "Riot nick name", true);
 
-        OptionData riotIdOption = new OptionData(OptionType.STRING, PlayerIdentifierOptions.riotIdOption, "Riot Identifier Ex. BR1", true);
+        OptionData riotIdOption = new OptionData(OptionType.STRING, PlayerIdentifierOptions.riotIdOption, "Riot Identifier Ex. BR1 | Without #", true);
 
         OptionData regionOption = new OptionData(OptionType.STRING, PlayerIdentifierOptions.regionOption, "Region", true)
                 .addChoice(RegionEnum.BR1.getRegionName(), RegionEnum.BR1.getRegionName())
