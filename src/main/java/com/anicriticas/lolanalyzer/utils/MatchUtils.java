@@ -72,13 +72,22 @@ public class MatchUtils {
     }
 
     public static String getMatchDuration(long start, long end) {
-        long durationInMillis = start - end;
+        long durationInMillis = end - start;
 
         long hours = TimeUnit.MILLISECONDS.toHours(durationInMillis);
         long minutes = TimeUnit.MILLISECONDS.toMinutes(durationInMillis) % 60;
         long seconds = TimeUnit.MILLISECONDS.toSeconds(durationInMillis) % 60;
 
-        return String.format("%02dh%02dm%02ds", hours, minutes, seconds);
+        StringBuilder duration = new StringBuilder();
+
+        if (hours != 0) {
+            duration.append(String.format("%02dh", hours));
+        }
+
+        duration.append(String.format("%02dm", minutes));
+        duration.append(String.format("%02ds", seconds));
+
+        return duration.toString();
     }
 
     public static String getMatchDate(long timestamp) {
@@ -135,13 +144,13 @@ public class MatchUtils {
 
     public static List<String> getMatchRedSideBansWithEmojis(JSONObject lastMatch) {
         JSONArray bans = lastMatch.getJSONObject("info").getJSONArray("teams");
-        JSONObject blueSide = (JSONObject) bans.get(1);
-        JSONArray blueSideBans = blueSide.getJSONArray("bans");
+        JSONObject redSide = (JSONObject) bans.get(1);
+        JSONArray redSideBans = redSide.getJSONArray("bans");
 
         List<String> banList = new ArrayList<>();
 
-        for (int i = 0; i < blueSideBans.length(); i++) {
-            JSONObject ban = blueSideBans.getJSONObject(i);
+        for (int i = 0; i < redSideBans.length(); i++) {
+            JSONObject ban = redSideBans.getJSONObject(i);
             String championName = ChampionId.getChampionById(String.valueOf(ban.get("championId")));
             banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
         }
