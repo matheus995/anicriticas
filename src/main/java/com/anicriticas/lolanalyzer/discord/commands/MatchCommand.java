@@ -9,10 +9,13 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -48,6 +51,16 @@ public class MatchCommand extends ListenerAdapter {
                 String lastMatchId = lolAPIService.getLastMatchIdBySummonerPuuid(puuid, region);
                 JSONObject lasMatch = lolAPIService.getMatchById(lastMatchId, region);
 
+                Map<String, String> matchParticipantsMap = new HashMap<>();
+
+                JSONArray matchParticipants = MatchUtils.getMatchParticipants(lasMatch);
+                for (int i = 0; i < matchParticipants.toList().size(); i++) {
+                    String participantPUUID = matchParticipants.getJSONObject(i).getString("puuid");
+
+                    JSONObject participantRiotAccount = new JSONObject(lolAPIService.getRiotAccountByPuuid(participantPUUID, region));
+                    matchParticipantsMap.put(participantPUUID, participantRiotAccount.getString("gameName"));
+                }
+
                 JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, lasMatch);
                 assert participant != null;
 
@@ -58,7 +71,7 @@ public class MatchCommand extends ListenerAdapter {
                 messageBuilder.setMatchResult(riotCompleteName, participant, lasMatch);
                 messageBuilder.setMatchInformation(lasMatch);
                 messageBuilder.setMatchBans(lasMatch);
-                messageBuilder.setMatchPlayersKda(lasMatch);
+                messageBuilder.setMatchPlayersKda(lasMatch, matchParticipantsMap);
 
                 MessageEmbed embed = messageBuilder.embedBuilder.build();
                 event.getHook().sendMessageEmbeds(embed).queue();

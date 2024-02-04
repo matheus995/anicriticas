@@ -1,14 +1,19 @@
 package com.anicriticas.lolanalyzer.discord.messagebuilder;
 
 import com.anicriticas.lolanalyzer.ChampionId;
-import com.anicriticas.lolanalyzer.ChampionsEmojis;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Map;
 import java.util.Objects;
+
+import static com.anicriticas.lolanalyzer.ChampionsEmojis.getEmojiByChampionName;
+import static com.anicriticas.lolanalyzer.ElosEmojis.getEmojiByElo;
+import static com.anicriticas.lolanalyzer.GeneralEmojis.getEmojiByName;
+import static com.anicriticas.lolanalyzer.utils.MatchUtils.getMatchResult;
 
 public class MessageBuilder {
 
@@ -38,7 +43,7 @@ public class MessageBuilder {
             int level = champion.getInt("championLevel");
             long points = champion.getLong("championPoints");
 
-            topChampions.append(String.format("`%d.` %s %s (Level %d, **%s**)\n", i + 1, ChampionsEmojis.getEmojiByChampionName(championName), championName, level, MatchUtils.humanReadableInt(points)));
+            topChampions.append(String.format("`%d.` %s %s (Level %d, **%s**)\n", i + 1, getEmojiByChampionName(championName), championName, level, MatchUtils.humanReadableInt(points)));
         }
 
         embedBuilder.addField(String.format("> Top %s Champions", topChampionsMastery.toList().size()), topChampions.toString(), true);
@@ -59,7 +64,8 @@ public class MessageBuilder {
 
             switch (ranked.getString("queueType")) {
                 case "RANKED_SOLO_5x5":
-                    soloQText = String.format("%s %s (**%s LP**) (**%s W** / **%s L**, %s",
+                    soloQText = String.format("%s %s %s (**%s LP**) (**%s W** / **%s L**, %s",
+                            getEmojiByElo(ranked.getString("tier")),
                             ranked.getString("tier"),
                             ranked.getString("rank"),
                             ranked.getInt("leaguePoints"),
@@ -68,7 +74,8 @@ public class MessageBuilder {
                             Math.round((ranked.getInt("wins") * 100d) / (ranked.getInt("wins") + ranked.getInt("losses"))) + "%)");
                     break;
                 case "RANKED_FLEX_SR":
-                    flexSRText = String.format("%s %s (**%s LP**) (**%s W** / **%s L**, %s",
+                    flexSRText = String.format("%s %s %s (**%s LP**) (**%s W** / **%s L**, %s",
+                            getEmojiByElo(ranked.getString("tier")),
                             ranked.getString("tier"),
                             ranked.getString("rank"),
                             ranked.getInt("leaguePoints"),
@@ -77,7 +84,8 @@ public class MessageBuilder {
                             Math.round((ranked.getInt("wins") * 100d) / (ranked.getInt("wins") + ranked.getInt("losses"))) + "%)");
                     break;
                 case "RANKED_TFT":
-                    tftText = String.format("%s %s (**%s LP**) (**%s W** / **%s L**, %s",
+                    tftText = String.format("%s %s %s (**%s LP**) (**%s W** / **%s L**, %s",
+                            getEmojiByElo(ranked.getString("tier")),
                             ranked.getString("tier"),
                             ranked.getString("rank"),
                             ranked.getInt("leaguePoints"),
@@ -106,9 +114,10 @@ public class MessageBuilder {
             JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, match);
             String championName = ChampionId.getChampionById(String.valueOf(participant.get("championId")));
 
-            lastMatchesText.append(String.format("`%d.`  %s %s  (%s)\n",
+            lastMatchesText.append(String.format("`%d.` %s %s %s  (%s)\n",
                     i + 1,
-                    ChampionsEmojis.getEmojiByChampionName(championName),
+                    getEmojiByName(getMatchResult(participant)),
+                    getEmojiByChampionName(championName),
                     championName,
                     (MatchUtils.getMatchDate(match.getJSONObject("info").getLong("gameStartTimestamp")))));
         }
@@ -140,7 +149,7 @@ public class MessageBuilder {
         embedBuilder.addField("> Banned champions", String.join("\n", bannedChampions), false);
     }
 
-    public void setMatchPlayersKda(JSONObject lastMatch) {
+    public void setMatchPlayersKda(JSONObject lastMatch, Map<String, String> matchParticipants) {
         JSONArray participants = MatchUtils.getMatchParticipants(lastMatch);
 
         StringBuilder blueTeamParticipants = new StringBuilder();
@@ -149,7 +158,7 @@ public class MessageBuilder {
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName = participant.getString("summonerName");
+            String summonerName = matchParticipants.get(participant.getString("puuid"));
             String championName = ChampionId.getChampionById(String.valueOf(participant.get("championId")));
 
             int summonerKills = participant.getInt("kills");
@@ -160,9 +169,9 @@ public class MessageBuilder {
             String formattedTotalSummonerStats = String.format("(**%s**/**%s**/**%s** **%s CS**)", summonerKills, summonerDeaths, summonerAssists, totalCS);
 
             if (MatchUtils.isBlueSide(participant.getInt("teamId"))) {
-                blueTeamParticipants.append(formatPlayerKdaToFitInOneLine(ChampionsEmojis.getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
+                blueTeamParticipants.append(formatPlayerKdaToFitInOneLine(getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
             } else {
-                redTeamParticipants.append(formatPlayerKdaToFitInOneLine(ChampionsEmojis.getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
+                redTeamParticipants.append(formatPlayerKdaToFitInOneLine(getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
             }
         }
 

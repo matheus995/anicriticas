@@ -50,6 +50,25 @@ public class LolAPIService {
         }
     }
 
+    public String getRiotAccountByPuuid(String puuid, RegionEnum region) {
+        String url = General.getAlternativeRegionBaseUrl(region) + AccountV1.GET_RIOT_ACCOUNT_BY_PUUID;
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Riot-Token", riotToken);
+
+        final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        Map<String, String> pathParam = new HashMap<>();
+        pathParam.put("puuid", puuid);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
+            return new JSONObject(responseEntity.getBody()).toString(4);
+        } catch (HttpClientErrorException e) {
+            throw new RuntimeException("Error when trying to find riot account " + puuid + ": " + e.getMessage());
+        }
+    }
+
     public String getSummonerByPuuid(String puuid, RegionEnum region) {
         String url = General.getRegionBaseUrl(region) + SummonerV4.GET_SUMMONER_BY_PUUID;
 
