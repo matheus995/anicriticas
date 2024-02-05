@@ -38,12 +38,16 @@ public class MatchCommand extends ListenerAdapter {
 
             String riotNickName = riotNickNameOption.getAsString();
             String riotId = removeHashTagIfExists(riotIdOption.getAsString());
-            String riotCompleteName = riotNickName + " #" + riotId;
+
             RegionEnum region = RegionEnum.getByRegionName(regionOption.getAsString());
 
             try {
                 JSONObject riotAccount = new JSONObject(lolAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
                 String puuid = riotAccount.getString("puuid");
+                riotNickName = riotAccount.getString("gameName");
+                riotId = riotAccount.getString("tagLine");
+
+                String riotCompleteName = riotNickName + " #" + riotId;
 
                 JSONObject summonerData = new JSONObject(lolAPIService.getSummonerByPuuid(puuid, region));
 
