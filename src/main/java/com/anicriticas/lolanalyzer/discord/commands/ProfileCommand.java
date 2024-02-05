@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.awt.*;
 import java.util.Objects;
 
+import static com.anicriticas.lolanalyzer.utils.RiotAccountUtils.removeHashTagIfExists;
+
 @RestController
 public class ProfileCommand extends ListenerAdapter {
 
@@ -35,7 +37,7 @@ public class ProfileCommand extends ListenerAdapter {
             }
 
             String riotNickName = riotNickNameOption.getAsString();
-            String riotId = riotIdOption.getAsString();
+            String riotId = removeHashTagIfExists(riotIdOption.getAsString());
             String riotCompleteName = riotNickName + " #" + riotId;
             RegionEnum region = RegionEnum.getByRegionName(regionOption.getAsString());
 

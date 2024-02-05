@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.awt.*;
 import java.util.Objects;
 
+import static com.anicriticas.lolanalyzer.utils.RiotAccountUtils.removeHashTagIfExists;
+
 @RestController
 public class MatchCommand extends ListenerAdapter {
 
@@ -35,7 +37,7 @@ public class MatchCommand extends ListenerAdapter {
             }
 
             String riotNickName = riotNickNameOption.getAsString();
-            String riotId = riotIdOption.getAsString();
+            String riotId = removeHashTagIfExists(riotIdOption.getAsString());
             String riotCompleteName = riotNickName + " #" + riotId;
             RegionEnum region = RegionEnum.getByRegionName(regionOption.getAsString());
 
@@ -45,7 +47,8 @@ public class MatchCommand extends ListenerAdapter {
 
                 JSONObject summonerData = new JSONObject(lolAPIService.getSummonerByPuuid(puuid, region));
 
-                String lastMatchId = lolAPIService.getLastMatchIdBySummonerPuuid(puuid, region);
+//                TODO logica para verificar se a partida é uma partida válida, por exemplo, se for modo treino buscar a próxima
+                String lastMatchId = lolAPIService.getLastMatchesIdsBySummonerPuuid(puuid, "1", region)[0];
                 JSONObject lastMatch = lolAPIService.getMatchById(lastMatchId, region);
 
                 JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, lastMatch);
