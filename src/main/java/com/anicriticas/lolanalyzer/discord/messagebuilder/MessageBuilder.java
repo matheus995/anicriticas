@@ -149,7 +149,7 @@ public class MessageBuilder {
         embedBuilder.addField("> Banned champions", String.join("\n", bannedChampions), false);
     }
 
-    public void setMatchPlayersKda(JSONObject lastMatch, Map<String, String> matchParticipants) {
+    public void setMatchPlayersKda(JSONObject lastMatch) {
         JSONArray participants = MatchUtils.getMatchParticipants(lastMatch);
 
         StringBuilder blueTeamParticipants = new StringBuilder();
@@ -158,7 +158,7 @@ public class MessageBuilder {
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName = matchParticipants.get(participant.getString("puuid"));
+            String summonerName = participant.getString("riotIdGameName");
             String championName = ChampionId.getChampionById(String.valueOf(participant.get("championId")));
 
             int summonerKills = participant.getInt("kills");
