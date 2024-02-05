@@ -3,7 +3,6 @@ package com.anicriticas.lolanalyzer.discord;
 import com.anicriticas.lolanalyzer.discord.commands.MatchCommand;
 import com.anicriticas.lolanalyzer.discord.commands.ProfileCommand;
 import com.anicriticas.lolanalyzer.discord.options.PlayerIdentifierOptions;
-import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -16,8 +15,6 @@ public class Bot extends ListenerAdapter {
     public static JDA jda;
 
     public static void startDiscordBot() {
-        Dotenv dotenv = Dotenv.load();
-
         EnumSet<GatewayIntent> intents = EnumSet.of(
                 GatewayIntent.GUILD_MESSAGES,
                 GatewayIntent.DIRECT_MESSAGES,
@@ -25,7 +22,7 @@ public class Bot extends ListenerAdapter {
         );
 
         try {
-            jda = JDABuilder.create(dotenv.get("DISCORD_TOKEN"), intents)
+            jda = JDABuilder.create(System.getenv("DISCORD_TOKEN"), intents)
                     .build()
                     .awaitReady();
         } catch (InterruptedException e) {
@@ -37,7 +34,6 @@ public class Bot extends ListenerAdapter {
 //        Guild guild = jda.getGuildById("1195030988938551350"); // Anicriticas
 //        assert guild != null;
 
-        //TODO no futuro alterar de guild.upsertCommand para jda.upsertCommand para atribuir o comando a todo servidor que adicionar o bot
         jda.upsertCommand("lastmatch", "Retrieve data from last match")
                 .addOptions(
                         PlayerIdentifierOptions.getPlayerIdentifierOptions()

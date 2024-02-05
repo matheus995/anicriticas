@@ -3,7 +3,6 @@ package com.anicriticas.lolanalyzer.service;
 import com.anicriticas.lolanalyzer.endpoints.*;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,7 @@ import java.util.Map;
 @Service
 public class LolAPIService {
 
-    Dotenv dotenv = Dotenv.load();
-    private final String riotToken = dotenv.get("RIOT_TOKEN");
+    private final String riotToken = System.getenv("RIOT_TOKEN");
 
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
@@ -104,36 +102,6 @@ public class LolAPIService {
             return new JSONObject(responseEntity.getBody()).toString(4);
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Error when trying to find data from summoner " + summonerName + ": " + e.getMessage());
-        }
-    }
-
-    public String getLastMatchIdBySummonerPuuid(String puuid, RegionEnum region) {
-        String url = General.getAlternativeRegionBaseUrl(region) + MatchV5.GET_LAST_MATCHS_ID_BY_SUMMONER_PUUID;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        URI uri = UriComponentsBuilder.fromUriString(url)
-                .queryParam("start", 0)
-                .queryParam("count", 1)
-                .buildAndExpand(puuid)
-                .toUri();
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
-            String[] matchId = null;
-            try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                matchId = objectMapper.readValue(responseEntity.getBody(), String[].class);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            assert matchId != null;
-            return matchId[0];
-        } catch (HttpClientErrorException e) {
-            throw new RuntimeException("Error when trying to retrieve last match ID from Summoner PUUID: " + puuid + ": " + e.getMessage());
         }
     }
 
