@@ -1,4 +1,4 @@
-package com.anicriticas.lolanalyzer;
+package com.anicriticas.lolanalyzer.emojis;
 
 import org.json.JSONObject;
 

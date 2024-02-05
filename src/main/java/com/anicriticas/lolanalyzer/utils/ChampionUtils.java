@@ -1,4 +1,4 @@
-package com.anicriticas.lolanalyzer;
+package com.anicriticas.lolanalyzer.utils;
 
 import org.json.JSONObject;
 
@@ -7,13 +7,13 @@ import java.net.URL;
 
 import static com.anicriticas.lolanalyzer.utils.JsonUtils.getJsonObjectFromUrl;
 
-public class ChampionId {
+public class ChampionUtils {
 
     public static String getChampionById(String championId) {
         JSONObject champions;
 
         try {
-            URL urlChampionsIdFile = ChampionId.class.getClassLoader().getResource("champions.json");
+            URL urlChampionsIdFile = ChampionUtils.class.getClassLoader().getResource("champions.json");
             champions = getJsonObjectFromUrl(urlChampionsIdFile).getJSONObject("data");
         } catch (IOException e) {
             throw new RuntimeException(e);

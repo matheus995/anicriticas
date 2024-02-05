@@ -1,7 +1,6 @@
 package com.anicriticas.lolanalyzer.utils;
 
-import com.anicriticas.lolanalyzer.ChampionId;
-import com.anicriticas.lolanalyzer.ChampionsEmojis;
+import com.anicriticas.lolanalyzer.emojis.ChampionsEmojis;
 import com.anicriticas.lolanalyzer.enums.QueueEnum;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -106,7 +105,7 @@ public class MatchUtils {
 
         for (int i = 0; i < blueSideBans.length(); i++) {
             JSONObject ban = blueSideBans.getJSONObject(i);
-            banList.add(ChampionId.getChampionById(String.valueOf(ban.get("championId"))));
+            banList.add(ChampionUtils.getChampionById(String.valueOf(ban.get("championId"))));
         }
 
         return banList;
@@ -121,7 +120,7 @@ public class MatchUtils {
 
         for (int i = 0; i < blueSideBans.length(); i++) {
             JSONObject ban = blueSideBans.getJSONObject(i);
-            banList.add(ChampionId.getChampionById(String.valueOf(ban.get("championId"))));
+            banList.add(ChampionUtils.getChampionById(String.valueOf(ban.get("championId"))));
         }
 
         return banList;
@@ -136,7 +135,7 @@ public class MatchUtils {
 
         for (int i = 0; i < blueSideBans.length(); i++) {
             JSONObject ban = blueSideBans.getJSONObject(i);
-            String championName = ChampionId.getChampionById(String.valueOf(ban.get("championId")));
+            String championName = ChampionUtils.getChampionById(String.valueOf(ban.get("championId")));
             banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
         }
 
@@ -152,7 +151,7 @@ public class MatchUtils {
 
         for (int i = 0; i < redSideBans.length(); i++) {
             JSONObject ban = redSideBans.getJSONObject(i);
-            String championName = ChampionId.getChampionById(String.valueOf(ban.get("championId")));
+            String championName = ChampionUtils.getChampionById(String.valueOf(ban.get("championId")));
             banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
         }
 

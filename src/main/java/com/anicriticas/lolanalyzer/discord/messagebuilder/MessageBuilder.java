@@ -1,18 +1,17 @@
 package com.anicriticas.lolanalyzer.discord.messagebuilder;
 
-import com.anicriticas.lolanalyzer.ChampionId;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
+import com.anicriticas.lolanalyzer.utils.ChampionUtils;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Map;
 import java.util.Objects;
 
-import static com.anicriticas.lolanalyzer.ChampionsEmojis.getEmojiByChampionName;
-import static com.anicriticas.lolanalyzer.ElosEmojis.getEmojiByElo;
-import static com.anicriticas.lolanalyzer.GeneralEmojis.getEmojiByName;
+import static com.anicriticas.lolanalyzer.emojis.ChampionsEmojis.getEmojiByChampionName;
+import static com.anicriticas.lolanalyzer.emojis.ElosEmojis.getEmojiByElo;
+import static com.anicriticas.lolanalyzer.emojis.GeneralEmojis.getEmojiByName;
 import static com.anicriticas.lolanalyzer.utils.MatchUtils.getMatchResult;
 
 public class MessageBuilder {
@@ -39,7 +38,7 @@ public class MessageBuilder {
         for (int i = 0; i < topChampionsMastery.toList().size(); i++) {
             JSONObject champion = topChampionsMastery.getJSONObject(i);
 
-            String championName = ChampionId.getChampionById(String.valueOf(champion.get("championId")));
+            String championName = ChampionUtils.getChampionById(String.valueOf(champion.get("championId")));
             int level = champion.getInt("championLevel");
             long points = champion.getLong("championPoints");
 
@@ -112,7 +111,7 @@ public class MessageBuilder {
             JSONObject match = lastMatches.getJSONObject(i);
 
             JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, match);
-            String championName = ChampionId.getChampionById(String.valueOf(participant.get("championId")));
+            String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             lastMatchesText.append(String.format("`%d.` %s %s %s  (%s)\n",
                     i + 1,
@@ -159,7 +158,7 @@ public class MessageBuilder {
             JSONObject participant = participants.getJSONObject(i);
 
             String summonerName = participant.getString("riotIdGameName");
-            String championName = ChampionId.getChampionById(String.valueOf(participant.get("championId")));
+            String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             int summonerKills = participant.getInt("kills");
             int summonerDeaths = participant.getInt("deaths");
