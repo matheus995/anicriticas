@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class MatchUtils {
@@ -91,8 +92,12 @@ public class MatchUtils {
     }
 
     public static String getMatchDate(long timestamp) {
+        TimeZone timeZone = TimeZone.getTimeZone("GMT-3");
         Date date = new Date(timestamp);
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        dateFormat.setTimeZone(timeZone);
+
         return dateFormat.format(date);
     }
 
