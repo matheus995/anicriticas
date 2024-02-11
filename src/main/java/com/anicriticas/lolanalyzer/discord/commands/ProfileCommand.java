@@ -4,79 +4,94 @@ import com.anicriticas.lolanalyzer.discord.messagebuilder.MessageBuilder;
 import com.anicriticas.lolanalyzer.discord.options.PlayerIdentifierOptions;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.service.LolAPIService;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
+import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
+import discord4j.rest.util.Color;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.awt.*;
-import java.util.Objects;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import static com.anicriticas.lolanalyzer.utils.RiotAccountUtils.removeHashTagIfExists;
 
-@RestController
-public class ProfileCommand extends ListenerAdapter {
+@Slf4j
+@Component
+public class ProfileCommand implements ISlashCommand {
 
-    private LolAPIService lolAPIService = new LolAPIService();
+    private final LolAPIService lolAPIService = new LolAPIService();
+
+    private static final String commandName = "profile";
+
+    public static ApplicationCommandRequest profileCommandRequest() {
+
+        return ApplicationCommandRequest.builder()
+                .name(commandName)
+                .description("Retrieve profile data from a summoner")
+                .addAllOptions(PlayerIdentifierOptions.getPlayerIdentifierOptions())
+                .build();
+    }
 
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-//        event.deferReply().queue();
+    public String getName() {
+        return commandName;
+    }
 
-        if (event.getName().equals("profile")) {
-            OptionMapping riotNickNameOption = event.getOption(PlayerIdentifierOptions.riotNickNameOption);
-            OptionMapping riotIdOption = event.getOption(PlayerIdentifierOptions.riotIdOption);
-            OptionMapping regionOption = event.getOption(PlayerIdentifierOptions.regionOption);
+    @Override
+    public Mono<Void> handle(ChatInputInteractionEvent event) {
+        String riotNickName = event.getOption(PlayerIdentifierOptions.riotNickNameOption)
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .get();
 
-            if (Objects.isNull(riotNickNameOption) || Objects.isNull(riotIdOption) || Objects.isNull(regionOption)) {
-                event.reply("profile command error").queue();
-                return;
+        String riotId = removeHashTagIfExists(event.getOption(PlayerIdentifierOptions.riotIdOption)
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .get());
+
+        RegionEnum region = RegionEnum.getByRegionName(event.getOption(PlayerIdentifierOptions.regionOption)
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .get());
+
+        try {
+            JSONObject riotAccount = new JSONObject(lolAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
+            String puuid = riotAccount.getString("puuid");
+            riotNickName = riotAccount.getString("gameName");
+            riotId = riotAccount.getString("tagLine");
+
+            String riotCompleteName = riotNickName + " #" + riotId;
+
+            JSONObject summonerData = new JSONObject(lolAPIService.getSummonerByPuuid(puuid, region));
+            String summonerId = summonerData.getString("id");
+
+            String[] lastMatchesId = lolAPIService.getLastMatchesIdsBySummonerPuuid(puuid, "3", region);
+            JSONArray lastMatches = new JSONArray();
+
+            for (int i = 0; i < lastMatchesId.length; i++) {
+                lastMatches.put(lolAPIService.getMatchById(lastMatchesId[i], region));
             }
 
-            String riotNickName = riotNickNameOption.getAsString();
-            String riotId = removeHashTagIfExists(riotIdOption.getAsString());
+            JSONArray topChampionsMastery = lolAPIService.getTopChampionsMasteryBySummonerPuuid(puuid, region);
+            JSONArray rankedStats = lolAPIService.getRankedStats(summonerId, region);
 
-            RegionEnum region = RegionEnum.getByRegionName(regionOption.getAsString());
+            EmbedCreateSpec lastMatchMessageBuilder = EmbedCreateSpec.builder()
+                    .color(Color.CYAN)
+                    .author("Profile", "", "")
+                    .thumbnail(MessageBuilder.getThumbnailWithProfileIcon(String.valueOf(summonerData.get("profileIconId"))))
+                    .addField(MessageBuilder.getProfileBasicInfo(summonerData, riotCompleteName, region, true))
+                    .addField(MessageBuilder.getProfileTopChampions(topChampionsMastery, true))
+                    .addField(MessageBuilder.getRankedStats(rankedStats, false))
+                    .addField(MessageBuilder.getProfileRecentMatches(lastMatches, puuid, false))
+                    .build();
 
-            try {
-                JSONObject riotAccount = new JSONObject(lolAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
-                String puuid = riotAccount.getString("puuid");
-                riotNickName = riotAccount.getString("gameName");
-                riotId = riotAccount.getString("tagLine");
-
-                String riotCompleteName = riotNickName + " #" + riotId;
-
-                JSONObject summonerData = new JSONObject(lolAPIService.getSummonerByPuuid(puuid, region));
-                String summonerId = summonerData.getString("id");
-
-                String[] lastMatchesId = lolAPIService.getLastMatchesIdsBySummonerPuuid(puuid, "3", region);
-                JSONArray lastMatches = new JSONArray();
-
-                for (int i = 0; i < lastMatchesId.length; i++) {
-                    lastMatches.put(lolAPIService.getMatchById(lastMatchesId[i], region));
-                }
-
-                JSONArray topChampionsMastery = lolAPIService.getTopChampionsMasteryBySummonerPuuid(puuid, region);
-                JSONArray rankedStats = lolAPIService.getRankedStats(summonerId, region);
-
-                MessageBuilder messageBuilder = new MessageBuilder();
-                messageBuilder.embedBuilder.setColor(Color.CYAN);
-                messageBuilder.embedBuilder.setAuthor("Profile");
-                messageBuilder.setThumbnailWithProfileIcon(String.valueOf(summonerData.get("profileIconId")));
-                messageBuilder.setProfileBasicInfo(summonerData, riotCompleteName, region, true);
-                messageBuilder.setProfileTopChampions(topChampionsMastery, true);
-                messageBuilder.setRankedStats(rankedStats, false);
-                messageBuilder.setProfileRecentMatches(lastMatches, puuid, false);
-
-                MessageEmbed embed = messageBuilder.embedBuilder.build();
-                event.getHook().sendMessageEmbeds(embed).queue();
-            } catch (Exception e) {
-                event.getHook().sendMessage("Error when trying to retrieve Summoner profile: " + riotNickName).queue();
-                throw new RuntimeException(e.getMessage());
-            }
+            return event.createFollowup().withEmbeds(lastMatchMessageBuilder).then();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return event.createFollowup("Error when trying to retrieve Summoner profile: " + riotNickName).then();
         }
     }
 }
