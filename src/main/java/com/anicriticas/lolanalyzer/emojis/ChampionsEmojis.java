@@ -24,7 +24,7 @@ public class ChampionsEmojis {
         }
 
         for (String champion : emojis.keySet()) {
-            if (champion.equals(championName)) {
+            if (champion.equalsIgnoreCase(championName)) {
                 return emojis.getString(champion);
             }
         }
