@@ -3,7 +3,7 @@ package com.anicriticas.lolanalyzer.discord.messagebuilder;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.utils.ChampionUtils;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
-import net.dv8tion.jda.api.EmbedBuilder;
+import discord4j.core.spec.EmbedCreateFields;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -12,25 +12,23 @@ import java.util.Objects;
 import static com.anicriticas.lolanalyzer.emojis.ChampionsEmojis.getEmojiByChampionName;
 import static com.anicriticas.lolanalyzer.emojis.ElosEmojis.getEmojiByElo;
 import static com.anicriticas.lolanalyzer.emojis.GeneralEmojis.getEmojiByName;
-import static com.anicriticas.lolanalyzer.utils.MatchUtils.getMatchResult;
 
 public class MessageBuilder {
 
-    public EmbedBuilder embedBuilder = new EmbedBuilder();
-
-    public void setThumbnailWithProfileIcon(String profileIconId) {
-        embedBuilder.setThumbnail("https://ddragon.leagueoflegends.com/cdn/14.2.1/img/profileicon/" + profileIconId + ".png");
+    public static String getThumbnailWithProfileIcon(String profileIconId) {
+        return "https://ddragon.leagueoflegends.com/cdn/14.2.1/img/profileicon/" + profileIconId + ".png";
     }
 
-    public void setProfileBasicInfo(JSONObject summonerProfile, String riotNickName, RegionEnum region, boolean inline) {
+    public static EmbedCreateFields.Field getProfileBasicInfo(JSONObject summonerProfile, String riotNickName, RegionEnum region, boolean inline) {
         String[] profileInfo = {String.format("`Name:` %s", riotNickName), String.format("`Level:` %s", summonerProfile.get("summonerLevel")), String.format("`Region:` %s", region.getRegionName())};
-        embedBuilder.addField("> Basic information", String.join("\n", profileInfo), inline);
+
+        return EmbedCreateFields.Field.of("> Basic information", String.join("\n", profileInfo), inline);
     }
 
-    public void setProfileTopChampions(JSONArray topChampionsMastery, boolean inline) {
+    public static EmbedCreateFields.Field getProfileTopChampions(JSONArray topChampionsMastery, boolean inline) {
+
         if (Objects.isNull(topChampionsMastery)) {
-            embedBuilder.addField("> Top 3 Champions", "This summoner has not played champions", inline);
-            return;
+            return EmbedCreateFields.Field.of("> Top 3 Champions", "This summoner has not played with any champions", inline);
         }
 
         StringBuilder topChampions = new StringBuilder();
@@ -45,13 +43,13 @@ public class MessageBuilder {
             topChampions.append(String.format("`%d.` %s %s (Level %d, **%s**)\n", i + 1, getEmojiByChampionName(championName), championName, level, MatchUtils.humanReadableInt(points)));
         }
 
-        embedBuilder.addField(String.format("> Top %s Champions", topChampionsMastery.toList().size()), topChampions.toString(), true);
+        return EmbedCreateFields.Field.of(String.format("> Top %s Champions", topChampionsMastery.toList().size()), topChampions.toString(), true);
     }
 
-    public void setRankedStats(JSONArray rankedStats, boolean inline) {
+    public static EmbedCreateFields.Field getRankedStats(JSONArray rankedStats, boolean inline) {
+
         if (Objects.isNull(rankedStats)) {
-            embedBuilder.addField("> Ranked Stats", "This summoner has not played ranked games", inline);
-            return;
+            return EmbedCreateFields.Field.of("> Ranked Stats", "This summoner has not played ranked games", inline);
         }
 
         String soloQText = "*Unranked*";
@@ -96,13 +94,14 @@ public class MessageBuilder {
         }
 
         String[] summonerRankedStatsText = {String.format("`Solo/Duo:` %s", soloQText), String.format("`Flex SR:` %s", flexSRText), String.format("`TFT:` %s", tftText)};
-        embedBuilder.addField("> Ranked Stats", String.join("\n", summonerRankedStatsText), false);
+
+        return EmbedCreateFields.Field.of("> Ranked Stats", String.join("\n", summonerRankedStatsText), inline);
     }
 
-    public void setProfileRecentMatches(JSONArray lastMatches, String puuid, boolean inline) {
+    public static EmbedCreateFields.Field getProfileRecentMatches(JSONArray lastMatches, String puuid, boolean inline) {
+
         if (Objects.isNull(lastMatches)) {
-            embedBuilder.addField("> Recent Matches", "This summoner has not played in a while", inline);
-            return;
+            return EmbedCreateFields.Field.of("> Recent Matches", "This summoner has not played in a while", inline);
         }
 
         StringBuilder lastMatchesText = new StringBuilder();
@@ -115,49 +114,48 @@ public class MessageBuilder {
 
             lastMatchesText.append(String.format("`%d.` %s %s %s  (%s)\n",
                     i + 1,
-                    getEmojiByName(getMatchResult(participant)),
+                    getEmojiByName(MatchUtils.getMatchResult(participant)),
                     getEmojiByChampionName(championName),
                     championName,
                     (MatchUtils.getMatchDate(match.getJSONObject("info").getLong("gameStartTimestamp")))));
         }
 
-        embedBuilder.addField("> Recent Matches", lastMatchesText.toString(), inline);
+        return EmbedCreateFields.Field.of("> Recent Matches", lastMatchesText.toString(), inline);
     }
 
-    public void setMatchResult(String summonerName, JSONObject participant, JSONObject lastMatch) {
-        embedBuilder.setTitle(
-                summonerName + " - " +
-                        MatchUtils.getMatchResult(participant) + " - " +
-                        MatchUtils.getGameType(lastMatch.getJSONObject("info").getInt("queueId")).getQueueDescription()
-        );
+    public static String getMatchResult(String summonerName, JSONObject participant, JSONObject lastMatch) {
+        return summonerName + " - " +
+                MatchUtils.getMatchResult(participant) + " - " +
+                MatchUtils.getGameType(lastMatch.getJSONObject("info").getInt("queueId")).getQueueDescription();
     }
 
-    public void setMatchInformation(JSONObject lastMatch) {
+    public static EmbedCreateFields.Field getMatchInformation(JSONObject lastMatch) {
         String matchDate = MatchUtils.getMatchDate(lastMatch.getJSONObject("info").getLong("gameStartTimestamp"));
         String matchDuration = MatchUtils.getMatchDuration(lastMatch.getJSONObject("info").getLong("gameStartTimestamp"), lastMatch.getJSONObject("info").getLong("gameEndTimestamp"));
         String[] matchInformation = {String.format("`Date:` %s", matchDate), String.format("`Duration:` %s", matchDuration)};
-        embedBuilder.addField("> Match information", String.join("\n", matchInformation), false);
+
+        return EmbedCreateFields.Field.of("> Match information", String.join("\n", matchInformation), false);
     }
 
-    public void setMatchBans(JSONObject lastMatch) {
+    public static EmbedCreateFields.Field getMatchBans(JSONObject lastMatch) {
         if (MatchUtils.getMatchBlueSideBans(lastMatch).isEmpty()) {
-            return;
+            return null;
         }
 
         String[] bannedChampions = {String.format("`Blue team:` %s", String.join(" ", MatchUtils.getMatchBlueSideBansWithEmojis(lastMatch))), String.format("`Red team:` %s", String.join(" ", MatchUtils.getMatchRedSideBansWithEmojis(lastMatch))),};
-        embedBuilder.addField("> Banned champions", String.join("\n", bannedChampions), false);
+
+        return EmbedCreateFields.Field.of("> Banned champions", String.join("\n", bannedChampions), false);
     }
 
-    public void setMatchPlayersKda(JSONObject lastMatch) {
+    public static EmbedCreateFields.Field getMatchPlayersKdaBlueTeam(JSONObject lastMatch) {
         JSONArray participants = MatchUtils.getMatchParticipants(lastMatch);
 
         StringBuilder blueTeamParticipants = new StringBuilder();
-        StringBuilder redTeamParticipants = new StringBuilder();
 
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName = participant.getString("riotIdGameName");
+            String summonerName = participant.getString("riotIdGameName").isBlank() ? participant.getString("summonerName") : participant.getString("riotIdGameName");
             String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             int summonerKills = participant.getInt("kills");
@@ -169,16 +167,39 @@ public class MessageBuilder {
 
             if (MatchUtils.isBlueSide(participant.getInt("teamId"))) {
                 blueTeamParticipants.append(formatPlayerKdaToFitInOneLine(getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
-            } else {
+            }
+        }
+
+        return EmbedCreateFields.Field.of("> Blue team", String.join("", blueTeamParticipants), true);
+    }
+
+    public static EmbedCreateFields.Field getMatchPlayersKdaRedTeam(JSONObject lastMatch) {
+        JSONArray participants = MatchUtils.getMatchParticipants(lastMatch);
+
+        StringBuilder redTeamParticipants = new StringBuilder();
+
+        for (int i = 0; i < participants.toList().size(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+
+            String summonerName = participant.getString("riotIdGameName").isBlank() ? participant.getString("summonerName") : participant.getString("riotIdGameName");
+            String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
+
+            int summonerKills = participant.getInt("kills");
+            int summonerDeaths = participant.getInt("deaths");
+            int summonerAssists = participant.getInt("assists");
+            int totalCS = participant.getInt("totalMinionsKilled") + participant.getInt("neutralMinionsKilled");
+
+            String formattedTotalSummonerStats = String.format("(**%s**/**%s**/**%s** **%s CS**)", summonerKills, summonerDeaths, summonerAssists, totalCS);
+
+            if (MatchUtils.isRedSide(participant.getInt("teamId"))) {
                 redTeamParticipants.append(formatPlayerKdaToFitInOneLine(getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
             }
         }
 
-        embedBuilder.addField("> Blue team", String.join("", blueTeamParticipants), true);
-        embedBuilder.addField("> Red team", String.join("", redTeamParticipants), true);
+        return EmbedCreateFields.Field.of("> Red team", String.join("", redTeamParticipants), true);
     }
 
-    private String formatPlayerKdaToFitInOneLine(String championEmoji, String summonerName, String playerStats) {
+    private static String formatPlayerKdaToFitInOneLine(String championEmoji, String summonerName, String playerStats) {
         String stringWithoutEmoji = String.format("%s | %s\n", summonerName, playerStats);
 
         if (stringWithoutEmoji.length() >= 45) {

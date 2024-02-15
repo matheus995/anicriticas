@@ -5,74 +5,90 @@ import com.anicriticas.lolanalyzer.discord.options.PlayerIdentifierOptions;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.service.LolAPIService;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
+import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
+import discord4j.rest.util.Color;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.awt.*;
-import java.util.Objects;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import static com.anicriticas.lolanalyzer.utils.RiotAccountUtils.removeHashTagIfExists;
 
-@RestController
-public class MatchCommand extends ListenerAdapter {
+@Slf4j
+@Component
+public class MatchCommand implements ISlashCommand {
 
-    private LolAPIService lolAPIService = new LolAPIService();
+    private final LolAPIService lolAPIService = new LolAPIService();
+
+    private static final String commandName = "lastmatch";
+
+    public static ApplicationCommandRequest lastMatchCommandRequest() {
+
+        return ApplicationCommandRequest.builder()
+                .name(commandName)
+                .description("Retrieve last match info from a Summoner")
+                .addAllOptions(PlayerIdentifierOptions.getPlayerIdentifierOptions())
+                .build();
+    }
 
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
+    public String getName() {
+        return commandName;
+    }
 
-        if (event.getName().equals("lastmatch")) {
-            OptionMapping riotNickNameOption = event.getOption(PlayerIdentifierOptions.riotNickNameOption);
-            OptionMapping riotIdOption = event.getOption(PlayerIdentifierOptions.riotIdOption);
-            OptionMapping regionOption = event.getOption(PlayerIdentifierOptions.regionOption);
+    @Override
+    public Mono<Void> handle(ChatInputInteractionEvent event) {
+        String riotNickName = event.getOption(PlayerIdentifierOptions.riotNickNameOption)
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .get();
 
-            if (Objects.isNull(riotNickNameOption) || Objects.isNull(riotIdOption) || Objects.isNull(regionOption)) {
-                event.reply("lastmatch command error").queue();
-                return;
-            }
+        String riotId = removeHashTagIfExists(event.getOption(PlayerIdentifierOptions.riotIdOption)
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .get());
 
-            String riotNickName = riotNickNameOption.getAsString();
-            String riotId = removeHashTagIfExists(riotIdOption.getAsString());
+        RegionEnum region = RegionEnum.getByRegionName(event.getOption(PlayerIdentifierOptions.regionOption)
+                .flatMap(ApplicationCommandInteractionOption::getValue)
+                .map(ApplicationCommandInteractionOptionValue::asString)
+                .get());
 
-            RegionEnum region = RegionEnum.getByRegionName(regionOption.getAsString());
+        try {
+            JSONObject riotAccount = new JSONObject(lolAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
+            String puuid = riotAccount.getString("puuid");
+            riotNickName = riotAccount.getString("gameName");
+            riotId = riotAccount.getString("tagLine");
 
-            try {
-                JSONObject riotAccount = new JSONObject(lolAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
-                String puuid = riotAccount.getString("puuid");
-                riotNickName = riotAccount.getString("gameName");
-                riotId = riotAccount.getString("tagLine");
+            String riotCompleteName = riotNickName + " #" + riotId;
 
-                String riotCompleteName = riotNickName + " #" + riotId;
+            JSONObject summonerData = new JSONObject(lolAPIService.getSummonerByPuuid(puuid, region));
 
-                JSONObject summonerData = new JSONObject(lolAPIService.getSummonerByPuuid(puuid, region));
+//            TODO logica para verificar se a partida é uma partida válida, por exemplo, se for modo treino buscar a próxima
+            String lastMatchId = lolAPIService.getLastMatchesIdsBySummonerPuuid(puuid, "1", region)[0];
+            JSONObject lastMatch = lolAPIService.getMatchById(lastMatchId, region);
 
-//                TODO logica para verificar se a partida é uma partida válida, por exemplo, se for modo treino buscar a próxima
-                String lastMatchId = lolAPIService.getLastMatchesIdsBySummonerPuuid(puuid, "1", region)[0];
-                JSONObject lastMatch = lolAPIService.getMatchById(lastMatchId, region);
+            JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, lastMatch);
+            assert participant != null;
 
-                JSONObject participant = MatchUtils.getParticipantBySummonerPuuid(puuid, lastMatch);
-                assert participant != null;
+            EmbedCreateSpec lastMatchMessageBuilder = EmbedCreateSpec.builder()
+                    .color(Color.CYAN)
+                    .author("Last Match", "", "")
+                    .thumbnail(MessageBuilder.getThumbnailWithProfileIcon(String.valueOf(summonerData.get("profileIconId"))))
+                    .title(MessageBuilder.getMatchResult(riotCompleteName, participant, lastMatch))
+                    .addField(MessageBuilder.getMatchInformation(lastMatch))
+                    .addField(MessageBuilder.getMatchBans(lastMatch))
+                    .addField(MessageBuilder.getMatchPlayersKdaBlueTeam(lastMatch))
+                    .addField(MessageBuilder.getMatchPlayersKdaRedTeam(lastMatch))
+                    .build();
 
-                MessageBuilder messageBuilder = new MessageBuilder();
-                messageBuilder.embedBuilder.setColor(Color.CYAN);
-                messageBuilder.embedBuilder.setAuthor("Last Match");
-                messageBuilder.setThumbnailWithProfileIcon(String.valueOf(summonerData.get("profileIconId")));
-                messageBuilder.setMatchResult(riotCompleteName, participant, lastMatch);
-                messageBuilder.setMatchInformation(lastMatch);
-                messageBuilder.setMatchBans(lastMatch);
-                messageBuilder.setMatchPlayersKda(lastMatch);
-
-                MessageEmbed embed = messageBuilder.embedBuilder.build();
-                event.getHook().sendMessageEmbeds(embed).queue();
-            } catch (Exception e) {
-                event.getHook().sendMessage("Error when trying to retrieve last match from Summoner: " + riotNickName).queue();
-                throw new RuntimeException(e.getMessage());
-            }
+            return event.createFollowup().withEmbeds(lastMatchMessageBuilder).then();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return event.createFollowup("Error when trying to retrieve last match from Summoner: " + riotNickName).then();
         }
     }
 }

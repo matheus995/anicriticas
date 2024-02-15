@@ -1,14 +1,9 @@
 package com.anicriticas.lolanalyzer.controller;
 
-import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.service.LolAPIService;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api")
