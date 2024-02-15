@@ -155,7 +155,7 @@ public class MessageBuilder {
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName = participant.getString("riotIdGameName");
+            String summonerName = participant.getString("riotIdGameName").isBlank() ? participant.getString("summonerName") : participant.getString("riotIdGameName");
             String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             int summonerKills = participant.getInt("kills");
@@ -181,7 +181,7 @@ public class MessageBuilder {
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName = participant.getString("riotIdGameName");
+            String summonerName = participant.getString("riotIdGameName").isBlank() ? participant.getString("summonerName") : participant.getString("riotIdGameName");
             String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             int summonerKills = participant.getInt("kills");
