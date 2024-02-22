@@ -164,6 +164,41 @@ public class MatchUtils {
         return banList;
     }
 
+    public static List<String> getMatchFoundBlueSideBansWithEmojis(JSONObject matchFound) {
+        JSONArray bans = matchFound.getJSONArray("bannedChampions");
+
+        List<String> banList = new ArrayList<>();
+
+        for (int i = 0; i < bans.toList().size(); i++) {
+            JSONObject ban = bans.getJSONObject(i);
+
+            if (isBlueSide(ban.getInt("teamId"))) {
+                String championName = ChampionUtils.getChampionById(String.valueOf(ban.get("championId")));
+                banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
+            }
+        }
+
+        return banList;
+    }
+
+    public static List<String> getMatchFoundRedSideBansWithEmojis(JSONObject matchFound) {
+        JSONArray bans = matchFound.getJSONArray("bannedChampions");
+
+        List<String> banList = new ArrayList<>();
+
+        for (int i = 0; i < bans.toList().size(); i++) {
+            JSONObject ban = bans.getJSONObject(i);
+
+            if (isRedSide(ban.getInt("teamId"))) {
+                String championName = ChampionUtils.getChampionById(String.valueOf(ban.get("championId")));
+                banList.add(ChampionsEmojis.getEmojiByChampionName(championName) + " " + championName);
+            }
+        }
+
+        return banList;
+    }
+
+
     public static boolean queueTypeHasBans(int queueId) {
         return switch (queueId) {
             case 420, 440 -> true;

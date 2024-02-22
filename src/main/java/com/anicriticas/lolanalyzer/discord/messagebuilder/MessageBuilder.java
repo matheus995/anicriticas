@@ -1,5 +1,6 @@
 package com.anicriticas.lolanalyzer.discord.messagebuilder;
 
+import com.anicriticas.lolanalyzer.enums.QueueEnum;
 import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.utils.ChampionUtils;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
@@ -137,12 +138,30 @@ public class MessageBuilder {
         return EmbedCreateFields.Field.of("> Match information", String.join("\n", matchInformation), false);
     }
 
+    public static EmbedCreateFields.Field getMatchFoundInformation(JSONObject matchFound) {
+        String matchDate = MatchUtils.getMatchDate(matchFound.getLong("gameStartTime"));
+        QueueEnum queueType = MatchUtils.getGameType(matchFound.getInt("gameQueueConfigId"));
+        String[] matchInformation = {String.format("`Date:` %s", matchDate), String.format("`Game Type:` %s", queueType.getQueueDescription())};
+
+        return EmbedCreateFields.Field.of("> Match information", String.join("\n", matchInformation), false);
+    }
+
     public static EmbedCreateFields.Field getMatchBans(JSONObject lastMatch) {
         if (MatchUtils.getMatchBlueSideBans(lastMatch).isEmpty()) {
             return null;
         }
 
         String[] bannedChampions = {String.format("`Blue team:` %s", String.join(" ", MatchUtils.getMatchBlueSideBansWithEmojis(lastMatch))), String.format("`Red team:` %s", String.join(" ", MatchUtils.getMatchRedSideBansWithEmojis(lastMatch))),};
+
+        return EmbedCreateFields.Field.of("> Banned champions", String.join("\n", bannedChampions), false);
+    }
+
+    public static EmbedCreateFields.Field getMatchFoundBans(JSONObject matchFound) {
+        if (MatchUtils.getMatchFoundBlueSideBansWithEmojis(matchFound).isEmpty()) {
+            return null;
+        }
+
+        String[] bannedChampions = {String.format("`Blue team:` %s", String.join(" ", MatchUtils.getMatchFoundBlueSideBansWithEmojis(matchFound))), String.format("`Red team:` %s", String.join(" ", MatchUtils.getMatchFoundRedSideBansWithEmojis(matchFound))),};
 
         return EmbedCreateFields.Field.of("> Banned champions", String.join("\n", bannedChampions), false);
     }
@@ -193,6 +212,40 @@ public class MessageBuilder {
 
             if (MatchUtils.isRedSide(participant.getInt("teamId"))) {
                 redTeamParticipants.append(formatPlayerKdaToFitInOneLine(getEmojiByChampionName(championName), summonerName, formattedTotalSummonerStats));
+            }
+        }
+
+        return EmbedCreateFields.Field.of("> Red team", String.join("", redTeamParticipants), true);
+    }
+
+    public static EmbedCreateFields.Field getMatchFoundBlueSidePlayers(JSONArray participants, boolean inline) {
+        StringBuilder blueTeamParticipants = new StringBuilder();
+
+        for (int i = 0; i < participants.toList().size(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+
+            String summonerName =  participant.getString("summonerName");
+            String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
+
+            if (MatchUtils.isBlueSide(participant.getInt("teamId"))) {
+                blueTeamParticipants.append(String.format("%s %s\n", getEmojiByChampionName(championName), summonerName));
+            }
+        }
+
+        return EmbedCreateFields.Field.of("> Red team", String.join("", blueTeamParticipants), inline);
+    }
+
+    public static EmbedCreateFields.Field getMatchFoundRedSidePlayers(JSONArray participants, boolean inline) {
+        StringBuilder redTeamParticipants = new StringBuilder();
+
+        for (int i = 0; i < participants.toList().size(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+
+            String summonerName =  participant.getString("summonerName");
+            String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
+
+            if (MatchUtils.isRedSide(participant.getInt("teamId"))) {
+                redTeamParticipants.append(String.format("%s %s\n", getEmojiByChampionName(championName), summonerName));
             }
         }
 
