@@ -232,7 +232,7 @@ public class MessageBuilder {
             }
         }
 
-        return EmbedCreateFields.Field.of("> Red team", String.join("", blueTeamParticipants), inline);
+        return EmbedCreateFields.Field.of("> Blue team", String.join("", blueTeamParticipants), inline);
     }
 
     public static EmbedCreateFields.Field getMatchFoundRedSidePlayers(JSONArray participants, boolean inline) {

@@ -35,6 +35,7 @@ public class MatchFinder {
     public void MatchListener() {
         JSONArray playersInfo;
 
+        //TODO buscar buscar.json de players apenas uma vez
         try {
             URL urlGeneralEmojiFile = MatchFinder.class.getClassLoader().getResource("match-find-players.json");
             playersInfo = getJsonArrayFromUrl(urlGeneralEmojiFile);
