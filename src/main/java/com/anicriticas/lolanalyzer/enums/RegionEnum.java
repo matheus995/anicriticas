@@ -36,4 +36,11 @@ public enum RegionEnum {
                 .findFirst()
                 .orElseThrow(() -> new RegionNotFoundException("Region not found: " + regionName));
     }
+
+    public static RegionEnum getRegionByEnumName(String enumName) {
+        return Arrays.stream(values())
+                .filter(region -> region.name().equalsIgnoreCase(enumName))
+                .findFirst()
+                .orElseThrow(() -> new RegionNotFoundException("Region not found: " + enumName));
+    }
 }

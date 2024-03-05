@@ -2,6 +2,7 @@ package com.anicriticas.lolanalyzer.utils;
 
 import com.anicriticas.lolanalyzer.emojis.ChampionsEmojis;
 import com.anicriticas.lolanalyzer.enums.QueueEnum;
+import discord4j.rest.util.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,6 +39,13 @@ public class MatchUtils {
 
     public static String getMatchResult(JSONObject participant) {
         if (participant.getBoolean("win")) {
+            return "Victory";
+        }
+        return "Defeat";
+    }
+
+    public static String getMatchResult(boolean win) {
+        if (win) {
             return "Victory";
         }
         return "Defeat";
@@ -198,6 +206,42 @@ public class MatchUtils {
         return banList;
     }
 
+    public static String getFinishedMatchResult(String playerSide, JSONObject match) {
+        JSONArray participants = getMatchParticipants(match);
+
+        for (int i = 0; i < participants.toList().size(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+
+            String participantSide = MatchUtils.getTeamSide(participant.getInt("teamId"));
+            if (participantSide.equals(playerSide)) {
+                return MatchUtils.getMatchResult(participant.getBoolean("win"));
+            }
+        }
+
+        return null;
+    }
+
+    public static Color getFinishedMatchColor(String playerSide, JSONObject match) {
+        JSONArray participants = getMatchParticipants(match);
+
+        for (int i = 0; i < participants.toList().size(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+
+            String participantSide = MatchUtils.getTeamSide(participant.getInt("teamId"));
+            if (participantSide.equals(playerSide)) {
+                return getColorByMatchResult(participant.getBoolean("win"));
+            }
+        }
+
+        return null;
+    }
+
+    public static Color getColorByMatchResult(boolean matchResult) {
+        if (matchResult) {
+            return Color.GREEN;
+        }
+        return Color.RED;
+    }
 
     public static boolean queueTypeHasBans(int queueId) {
         return switch (queueId) {

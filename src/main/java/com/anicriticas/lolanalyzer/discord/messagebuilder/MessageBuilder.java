@@ -5,6 +5,7 @@ import com.anicriticas.lolanalyzer.enums.RegionEnum;
 import com.anicriticas.lolanalyzer.utils.ChampionUtils;
 import com.anicriticas.lolanalyzer.utils.MatchUtils;
 import discord4j.core.spec.EmbedCreateFields;
+import discord4j.rest.util.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -128,6 +129,10 @@ public class MessageBuilder {
         return summonerName + " - " +
                 MatchUtils.getMatchResult(participant) + " - " +
                 MatchUtils.getGameType(lastMatch.getJSONObject("info").getInt("queueId")).getQueueDescription();
+    }
+
+    public static String getFinishedMatchResult(String matchResult, JSONObject lastMatch) {
+        return matchResult + " - " + MatchUtils.getGameType(lastMatch.getJSONObject("info").getInt("queueId")).getQueueDescription();
     }
 
     public static EmbedCreateFields.Field getMatchInformation(JSONObject lastMatch) {
