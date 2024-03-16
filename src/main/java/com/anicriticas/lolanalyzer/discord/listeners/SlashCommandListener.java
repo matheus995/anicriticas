@@ -18,8 +18,6 @@ public class SlashCommandListener {
     public SlashCommandListener(List<ISlashCommand> slashCommands, GatewayDiscordClient client) {
         commands = slashCommands;
 
-//        client.on(ChatInputInteractionEvent.class, this::handle).subscribe();
-
         client.on(ChatInputInteractionEvent.class, event -> event.deferReply().then(handle(event))).subscribe();
     }
 

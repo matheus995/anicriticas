@@ -34,9 +34,7 @@ public class GlobalCommandRegister implements ApplicationRunner {
         commands.add(lastMatchCommandRequest());
         commands.add(profileCommandRequest());
 
-//        long guildId = 1195030988938551350L;
 
-//        applicationService.bulkOverwriteGuildApplicationCommand(applicationId, guildId, commands)
         applicationService.bulkOverwriteGlobalApplicationCommand(applicationId, commands)
                 .doOnNext(ignore -> LOGGER.debug("Successfully registered Global Commands"))
                 .doOnError(e -> LOGGER.error("Failed to register global commands", e))

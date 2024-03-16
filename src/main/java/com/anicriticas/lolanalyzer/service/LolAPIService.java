@@ -155,6 +155,30 @@ public class LolAPIService {
         }
     }
 
+    public JSONObject getFinishedMatchById(String matchId, RegionEnum region) {
+        String url = General.getAlternativeRegionBaseUrl(region) + MatchV5.GET_MATCH_BY_MATCHID;
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Riot-Token", riotToken);
+        headers.set(HttpHeaders.ACCEPT, "application/json");
+
+        final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        Map<String, String> pathParam = new HashMap<>();
+        pathParam.put("matchId", matchId);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                return new JSONObject(responseEntity.getBody());
+            }
+            return null;
+        } catch (HttpClientErrorException e) {
+            return null;
+        }
+    }
+
     public JSONArray getTopChampionsMasteryBySummonerPuuid(String puuid, RegionEnum region) {
         String url = General.getRegionBaseUrl(region) + ChampionMasteryV4.GET_TOP_CHAMPION_MASTERY;
 
@@ -192,6 +216,30 @@ public class LolAPIService {
             return new JSONArray(responseEntity.getBody());
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Error when trying to retrieve top champions mastery " + e.getMessage());
+        }
+    }
+
+    public JSONObject getActiveGamesBySummonerId(String summonerId, RegionEnum region) {
+        String url = General.getRegionBaseUrl(region) + SpectatorV4.GET_ACTIVE_GAMES_BY_SUMMONER_ID;
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Riot-Token", riotToken);
+        headers.set(HttpHeaders.ACCEPT, "application/json");
+
+        final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        Map<String, String> pathParam = new HashMap<>();
+        pathParam.put("encryptedSummonerId", summonerId);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                return new JSONObject(responseEntity.getBody());
+            }
+            return null;
+        } catch (HttpClientErrorException e) {
+            return null;
         }
     }
 }
