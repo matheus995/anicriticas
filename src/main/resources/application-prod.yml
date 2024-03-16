@@ -1,0 +1,6 @@
+discord:
+  token: ${DISCORD_BOT_TOKEN}
+  chanel_to_log_matches: ${MATCH_FIND_CHANNEL_ID}
+
+riot:
+  token: ${RIOT_TOKEN}

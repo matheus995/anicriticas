@@ -1,0 +1,6 @@
+discord:
+  token: ${DISCORD_BOT_TOKEN_HMLG}
+  chanel_to_log_matches: ${MATCH_FIND_CHANNEL_ID_HMLG}
+
+riot:
+  token: ${RIOT_TOKEN}
