@@ -163,7 +163,7 @@ public class MessageBuilder {
 
     public static EmbedCreateFields.Field getMatchFoundBans(JSONObject matchFound) {
         if (MatchUtils.getMatchFoundBlueSideBansWithEmojis(matchFound).isEmpty()) {
-            return null;
+            return EmbedCreateFields.Field.of("", "", false);
         }
 
         String[] bannedChampions = {String.format("`Blue team:` %s", String.join(" ", MatchUtils.getMatchFoundBlueSideBansWithEmojis(matchFound))), String.format("`Red team:` %s", String.join(" ", MatchUtils.getMatchFoundRedSideBansWithEmojis(matchFound))),};
