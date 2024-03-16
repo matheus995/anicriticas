@@ -13,6 +13,7 @@ import discord4j.rest.util.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,11 @@ public class MatchFinder {
     @Autowired
     GatewayDiscordClient client;
 
-    private final LolAPIService lolAPIService = new LolAPIService();
+    @Value("${discord.chanel_to_log_matches}")
+    private String matchFindChannelId;
+
+    @Autowired
+    private LolAPIService lolAPIService;
 
     private Map<String, JSONObject> playersInGame = new HashMap<>();
 
@@ -107,7 +112,7 @@ public class MatchFinder {
                     .addField(MessageBuilder.getMatchFoundRedSidePlayers(gameInfo.getValue().getJSONArray("participants"), true))
                     .build();
 
-            client.getChannelById(Snowflake.of(System.getenv("MATCH_FIND_CHANNEL_ID")))
+            client.getChannelById(Snowflake.of(matchFindChannelId))
                     .ofType(MessageChannel.class)
                     .flatMap(channel -> channel.createMessage(matchFoundMessageBuilder)
                             .doOnNext(message -> messageId = message.getId()))
@@ -160,7 +165,7 @@ public class MatchFinder {
     }
 
     private void editMessage(Snowflake messageId, EmbedCreateSpec newContent) {
-        client.getChannelById(Snowflake.of(System.getenv("MATCH_FIND_CHANNEL_ID")))
+        client.getChannelById(Snowflake.of(matchFindChannelId))
                 .ofType(MessageChannel.class)
                 .flatMap(channel -> channel.getMessageById(messageId))
                 .flatMap(message -> message.edit(MessageEditSpec.builder().embeds(Collections.singleton(newContent)).build()))

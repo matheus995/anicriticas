@@ -13,6 +13,7 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Color;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -22,7 +23,8 @@ import static com.anicriticas.lolanalyzer.utils.RiotAccountUtils.removeHashTagIf
 @Component
 public class MatchCommand implements ISlashCommand {
 
-    private final LolAPIService lolAPIService = new LolAPIService();
+    @Autowired
+    private LolAPIService lolAPIService;
 
     private static final String commandName = "lastmatch";
 

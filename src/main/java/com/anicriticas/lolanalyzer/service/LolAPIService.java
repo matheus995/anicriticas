@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -23,10 +26,11 @@ import java.util.Map;
 @Service
 public class LolAPIService {
 
-    private final String riotToken = System.getenv("RIOT_TOKEN");
-
     @Autowired
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate;
+
+    @Value("${riot.token}")
+    private String riotToken;
 
     public String getRiotAccountByNameAndId(String riotNickName, String riotId, RegionEnum region) {
         String url = General.getAlternativeRegionBaseUrl(region) + AccountV1.GET_RIOT_ACCOUNT;
