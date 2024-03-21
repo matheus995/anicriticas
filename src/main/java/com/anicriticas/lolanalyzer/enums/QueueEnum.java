@@ -15,6 +15,7 @@ public enum QueueEnum {
     NORMAL_GAME_DRAFT_PICK("Normal Game (Draft Pick)"),
     ARENA("Arena"),
     URF("URF"),
+    ONE_FOR_ALL("One for All"),
     UNKNOWN_GAME_TYPE("Unknown Game Type");
 
     private final String queueDescription;
