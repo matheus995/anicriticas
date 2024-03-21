@@ -59,6 +59,7 @@ public class MatchUtils {
             case 450 -> QueueEnum.ARAM;
             case 490 -> QueueEnum.NORMAL_GAME_QUICK_PLAY;
             case 700 -> QueueEnum.CLASH;
+            case 1020 -> QueueEnum.ONE_FOR_ALL;
             case 1700 -> QueueEnum.ARENA;
             case 1900 -> QueueEnum.URF;
             default -> QueueEnum.UNKNOWN_GAME_TYPE;
