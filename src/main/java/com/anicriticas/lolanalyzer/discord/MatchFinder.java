@@ -63,8 +63,8 @@ public class MatchFinder {
 
             JSONObject activeGame = lolAPIService.getActiveGamesBySummonerId(summonerId, accountRegion);
 
-            // If player not in game, check the next player
-            if (Objects.isNull(activeGame)) {
+            // If player not in game or in TFT, check the next player
+            if (Objects.isNull(activeGame) || activeGame.optString("gameMode").equalsIgnoreCase("TFT")) {
                 playersInGame.remove(puuid);
                 continue;
             }
