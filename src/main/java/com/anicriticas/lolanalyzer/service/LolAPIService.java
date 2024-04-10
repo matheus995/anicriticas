@@ -219,8 +219,8 @@ public class LolAPIService {
         }
     }
 
-    public JSONObject getActiveGamesBySummonerId(String summonerId, RegionEnum region) {
-        String url = General.getRegionBaseUrl(region) + SpectatorV4.GET_ACTIVE_GAMES_BY_SUMMONER_ID;
+    public JSONObject getActiveGamesByPuuid(String puuid, RegionEnum region) {
+        String url = General.getRegionBaseUrl(region) + SpectatorV5.GET_ACTIVE_GAMES_BY_SUMMONER_ID;
 
         final HttpHeaders headers = new HttpHeaders();
         headers.set("X-Riot-Token", riotToken);
@@ -229,7 +229,7 @@ public class LolAPIService {
         final HttpEntity<String> entity = new HttpEntity<>(headers);
 
         Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("encryptedSummonerId", summonerId);
+        pathParam.put("encryptedPUUID", puuid);
 
         try {
             ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
