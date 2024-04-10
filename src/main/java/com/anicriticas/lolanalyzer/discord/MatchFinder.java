@@ -63,10 +63,9 @@ public class MatchFinder {
             JSONObject playerInfo = playersInfo.getJSONObject(i);
 
             String puuid = playerInfo.getString("puuid");
-            String summonerId = playerInfo.getString("summonerId");
             RegionEnum accountRegion = RegionEnum.getByRegionName(playerInfo.getString("region"));
 
-            JSONObject activeGame = lolAPIService.getActiveGamesBySummonerId(summonerId, accountRegion);
+            JSONObject activeGame = lolAPIService.getActiveGamesByPuuid(puuid, accountRegion);
 
             // If player not in game or in TFT, check the next player
             if (Objects.isNull(activeGame) || activeGame.optString("gameMode").equalsIgnoreCase("TFT")) {
