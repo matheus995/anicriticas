@@ -229,11 +229,11 @@ public class MessageBuilder {
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName =  participant.getString("summonerName");
+            String riotId =  participant.getString("riotId");
             String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             if (MatchUtils.isBlueSide(participant.getInt("teamId"))) {
-                blueTeamParticipants.append(String.format("%s %s\n", getEmojiByChampionName(championName), summonerName));
+                blueTeamParticipants.append(String.format("%s %s\n", getEmojiByChampionName(championName), riotId));
             }
         }
 
@@ -246,11 +246,11 @@ public class MessageBuilder {
         for (int i = 0; i < participants.toList().size(); i++) {
             JSONObject participant = participants.getJSONObject(i);
 
-            String summonerName =  participant.getString("summonerName");
+            String riotId =  participant.getString("riotId");
             String championName = ChampionUtils.getChampionById(String.valueOf(participant.get("championId")));
 
             if (MatchUtils.isRedSide(participant.getInt("teamId"))) {
-                redTeamParticipants.append(String.format("%s %s\n", getEmojiByChampionName(championName), summonerName));
+                redTeamParticipants.append(String.format("%s %s\n", getEmojiByChampionName(championName), riotId));
             }
         }
 
