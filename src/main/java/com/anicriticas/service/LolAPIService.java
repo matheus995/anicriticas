@@ -23,50 +23,11 @@ import java.util.Map;
 @Service
 public class LolAPIService {
 
-//    private final String riotToken = System.getenv("RIOT_TOKEN");
-    private final String riotToken = System.getenv("RIOT_TOKEN_TFT");
+    private final String riotToken = System.getenv("RIOT_TOKEN");
 
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
 
-    public String getRiotAccountByNameAndId(String riotNickName, String riotId, Region region) {
-        String url = General.getAlternativeRegionBaseUrl(region) + AccountV1.GET_RIOT_ACCOUNT;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("gameName", riotNickName);
-        pathParam.put("tagLine", riotId);
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
-            return new JSONObject(responseEntity.getBody()).toString(4);
-        } catch (HttpClientErrorException e) {
-            throw new RuntimeException("Error when trying to find riot account " + riotNickName + " " + riotId + ": " + e.getMessage());
-        }
-    }
-
-    public String getRiotAccountByPuuid(String puuid, Region region) {
-        String url = General.getAlternativeRegionBaseUrl(region) + AccountV1.GET_RIOT_ACCOUNT_BY_PUUID;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("puuid", puuid);
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
-            return new JSONObject(responseEntity.getBody()).toString(4);
-        } catch (HttpClientErrorException e) {
-            throw new RuntimeException("Error when trying to find riot account " + puuid + ": " + e.getMessage());
-        }
-    }
 
     public String getSummonerByPuuid(String puuid, Region region) {
         String url = General.getRegionBaseUrl(region) + SummonerV4.GET_SUMMONER_BY_PUUID;
@@ -84,25 +45,6 @@ public class LolAPIService {
             return new JSONObject(responseEntity.getBody()).toString(4);
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("Error when trying to find data from summoner " + puuid + ": " + e.getMessage());
-        }
-    }
-
-    public String getSummonerByName(String summonerName, Region region) {
-        String url = General.getRegionBaseUrl(region) + SummonerV4.GET_SUMMONER_BY_NAME;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("summonerName", summonerName);
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
-            return new JSONObject(responseEntity.getBody()).toString(4);
-        } catch (HttpClientErrorException e) {
-            throw new RuntimeException("Error when trying to find data from summoner " + summonerName + ": " + e.getMessage());
         }
     }
 
@@ -180,30 +122,6 @@ public class LolAPIService {
         }
     }
 
-    public JSONObject getFinishedTftMatchById(String matchId, Region region) {
-        String url = General.getAlternativeRegionBaseUrl(region) + TftMatchV1.GET_MATCH_BY_MATCHID;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-        headers.set(HttpHeaders.ACCEPT, "application/json");
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("matchId", matchId);
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
-
-            if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                return new JSONObject(responseEntity.getBody());
-            }
-            return null;
-        } catch (HttpClientErrorException e) {
-            return null;
-        }
-    }
-
     public JSONArray getTopChampionsMasteryBySummonerPuuid(String puuid, Region region) {
         String url = General.getRegionBaseUrl(region) + ChampionMasteryV4.GET_TOP_CHAMPION_MASTERY;
 
@@ -244,52 +162,8 @@ public class LolAPIService {
         }
     }
 
-    public JSONArray getTftRankedStats(String summonerId, Region region) {
-        String url = General.getRegionBaseUrl(region) + TftLeagueV1.GET_RANKED_STATS_BY_SUMMONER_ID;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-        headers.set(HttpHeaders.ACCEPT, "application/json");
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("summonerId", summonerId);
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
-            return new JSONArray(responseEntity.getBody());
-        } catch (HttpClientErrorException e) {
-            throw new RuntimeException("Error when trying to retrieve TFT player info " + e.getMessage());
-        }
-    }
-
     public JSONObject getActiveGamesByPuuid(String puuid, Region region) {
         String url = General.getRegionBaseUrl(region) + SpectatorV5.GET_ACTIVE_GAMES_BY_SUMMONER_ID;
-
-        final HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Riot-Token", riotToken);
-        headers.set(HttpHeaders.ACCEPT, "application/json");
-
-        final HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("encryptedPUUID", puuid);
-
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
-
-            if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                return new JSONObject(responseEntity.getBody());
-            }
-            return null;
-        } catch (HttpClientErrorException e) {
-            return null;
-        }
-    }
-
-    public JSONObject getActiveTftGamesByPuuid(String puuid, Region region) {
-        String url = General.getRegionBaseUrl(region) + SpectatorTftV5.GET_ACTIVE_GAMES_BY_SUMMONER_ID;
 
         final HttpHeaders headers = new HttpHeaders();
         headers.set("X-Riot-Token", riotToken);

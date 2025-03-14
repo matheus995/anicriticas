@@ -4,6 +4,8 @@ import com.anicriticas.discord.messagebuilder.MessageBuilder;
 import com.anicriticas.entities.tft.Character;
 import com.anicriticas.enums.Region;
 import com.anicriticas.service.LolAPIService;
+import com.anicriticas.service.RiotAPIService;
+import com.anicriticas.service.TftAPIService;
 import com.anicriticas.utils.CreateTftImageUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
@@ -31,13 +33,15 @@ public class TftMatchFinder {
     @Autowired
     GatewayDiscordClient client;
 
-    private final LolAPIService lolAPIService = new LolAPIService();
+    private final TftAPIService tftAPIService = new TftAPIService();
 
     private Map<String, JSONObject> playersInGame = new HashMap<>();
 
     private Map<JSONObject, Snowflake> gamesAlreadyMessaged = new HashMap<>();
 
     private Snowflake messageId = null;
+
+    private final String matchFindChannelId = System.getenv("MATCH_FIND_TFT_CHANNEL_ID");
 
     // Deixar fixedRate parametrizável
     @Scheduled(fixedRate = 180000)
@@ -58,7 +62,7 @@ public class TftMatchFinder {
             String puuid = playerInfo.getString("puuid");
             Region accountRegion = Region.getByRegionName(playerInfo.getString("region"));
 
-            JSONObject activeGame = lolAPIService.getActiveTftGamesByPuuid(puuid, accountRegion);
+            JSONObject activeGame = tftAPIService.getActiveGamesByPuuid(puuid, accountRegion);
 
             // If player not in game, check the next player
             if (Objects.isNull(activeGame)) {
@@ -101,7 +105,7 @@ public class TftMatchFinder {
             for (int i = 0; i < participants.toList().size(); i++) {
                 JSONObject participant = participants.getJSONObject(i);
 
-                JSONObject rankedInfo = getRankingTftSolo(lolAPIService.getTftRankedStats(participant.getString("summonerId"), matchRegion));
+                JSONObject rankedInfo = getRankingTftSolo(tftAPIService.getRankedStats(participant.getString("summonerId"), matchRegion));
                 participantsRankedInfo.put(rankedInfo);
             }
 
@@ -116,7 +120,7 @@ public class TftMatchFinder {
                     )
                     .build();
 
-            client.getChannelById(Snowflake.of(System.getenv("MATCH_FIND_CHANNEL_ID")))
+            client.getChannelById(Snowflake.of(matchFindChannelId))
                     .ofType(MessageChannel.class)
                     .flatMap(channel -> channel.createMessage(matchFoundMessageBuilder)
                             .doOnNext(message -> messageId = message.getId()))
@@ -135,7 +139,7 @@ public class TftMatchFinder {
             System.out.printf("Pesquisando se partida foi finalizada. MatchId: %s | MessageId: %s\n", matchId, gameMessaged.getValue());
 
             // Search if match it's already finished
-            JSONObject finishedMatch = lolAPIService.getFinishedTftMatchById(matchId, matchRegion);
+            JSONObject finishedMatch = tftAPIService.getFinishedMatchById(matchId, matchRegion);
 
             if (Objects.isNull(finishedMatch)) {
                 System.out.printf("Partida nao foi finalizada. MatchId: %s | MessageId: %s\n", matchId, gameMessaged.getValue());
@@ -179,7 +183,7 @@ public class TftMatchFinder {
     }
 
     private void editMessage(Snowflake messageId, EmbedCreateSpec newContent, String fileName) {
-        client.getChannelById(Snowflake.of(System.getenv("MATCH_FIND_CHANNEL_ID")))
+        client.getChannelById(Snowflake.of(matchFindChannelId))
                 .ofType(MessageChannel.class)
                 .flatMap(channel -> channel.getMessageById(messageId))
                 .flatMap(message -> {

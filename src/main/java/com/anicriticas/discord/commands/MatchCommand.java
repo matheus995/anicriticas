@@ -4,6 +4,7 @@ import com.anicriticas.discord.messagebuilder.MessageBuilder;
 import com.anicriticas.discord.options.PlayerIdentifierOptions;
 import com.anicriticas.enums.Region;
 import com.anicriticas.service.LolAPIService;
+import com.anicriticas.service.RiotAPIService;
 import com.anicriticas.utils.MatchUtils;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -22,6 +23,7 @@ import static com.anicriticas.utils.RiotAccountUtils.removeHashTagIfExists;
 @Component
 public class MatchCommand implements ISlashCommand {
 
+    private final RiotAPIService riotAPIService = new RiotAPIService();
     private final LolAPIService lolAPIService = new LolAPIService();
 
     private static final String commandName = "lastmatch";
@@ -58,7 +60,7 @@ public class MatchCommand implements ISlashCommand {
                 .get());
 
         try {
-            JSONObject riotAccount = new JSONObject(lolAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
+            JSONObject riotAccount = new JSONObject(riotAPIService.getRiotAccountByNameAndId(riotNickName, riotId, region));
             String puuid = riotAccount.getString("puuid");
             riotNickName = riotAccount.getString("gameName");
             riotId = riotAccount.getString("tagLine");
