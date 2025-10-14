@@ -1,6 +1,6 @@
 package com.anicriticas.utils;
 
-import com.anicriticas.entities.tft.Character;
+import com.anicriticas.entities.match.tft.Character;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.anicriticas.utils.FileUtils.getResourceStreamUrlByFileName;
+
 public class CreateTftImageUtils {
 
     private static final String TFT_IMAGE_NAME = "tftImage.png";
@@ -23,9 +25,12 @@ public class CreateTftImageUtils {
     public static void createImage(JSONObject participant, List<Character> characterList) {
 
         try {
-            BufferedImage greyStar = ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "grey-star.png"));
-            BufferedImage randomItem = ImageIO.read(new File(TFT_ITEM_IMAGES_DIR + "TFT_Item_BlueBuff.png"));
-            BufferedImage firstCharacterImage = ImageIO.read(new File(TFT_CHARACTER_IMAGES_DIR + characterList.getFirst().getName() + ".png"));
+//            BufferedImage greyStar = ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "grey-star.png"));
+//            BufferedImage randomItem = ImageIO.read(new File(TFT_ITEM_IMAGES_DIR + "TFT_Item_BlueBuff.png"));
+//            BufferedImage firstCharacterImage = ImageIO.read(new File(TFT_CHARACTER_IMAGES_DIR + characterList.getFirst().getName() + ".png"));
+            BufferedImage greyStar = ImageIO.read(getResourceStreamUrlByFileName(TFT_STAR_IMAGES_DIR + "grey-star.png"));
+            BufferedImage randomItem = ImageIO.read(getResourceStreamUrlByFileName(TFT_ITEM_IMAGES_DIR + "TFT_Item_BlueBuff.png"));
+            BufferedImage firstCharacterImage = ImageIO.read(getResourceStreamUrlByFileName(TFT_CHARACTER_IMAGES_DIR + characterList.getFirst().getName() + ".png"));
 
             int spacing = 10;
             int starSpacing = 5;
@@ -41,11 +46,18 @@ public class CreateTftImageUtils {
 
             for (Character character : characterList) {
                 System.out.println("Pesquisando imagem do character: " + character.getName());
-                BufferedImage characterImage = ImageIO.read(new File(TFT_CHARACTER_IMAGES_DIR + character.getName() + ".png"));
 
-                if (Objects.isNull(characterImage)) {
-                    characterImage = ImageIO.read(new File(TFT_CHARACTER_IMAGES_DIR + "Unknown.png"));
+                BufferedImage characterImage;
+                try {
+                    characterImage = ImageIO.read(getResourceStreamUrlByFileName(TFT_CHARACTER_IMAGES_DIR + character.getName() + ".png"));
+                } catch (NullPointerException e) {
+                    System.out.println("Imagem do character nao encontrado: " + character.getName());
+                    characterImage = ImageIO.read(getResourceStreamUrlByFileName(TFT_CHARACTER_IMAGES_DIR + "Unknown.png"));
                 }
+
+//                if (Objects.isNull(characterImage)) {
+//                    characterImage = ImageIO.read(getResourceStreamUrlByFileName(TFT_CHARACTER_IMAGES_DIR + "Unknown.png")));
+//                }
 
                 g.drawImage(championImage(
                                 character,
@@ -61,7 +73,7 @@ public class CreateTftImageUtils {
 
             g.dispose();
 
-            // Save the final imageF
+            // Save the final image
             ImageIO.write(combined, "PNG", new File(TFT_IMAGE_NAME));
 
             System.out.println("Image successfully created!");
@@ -152,11 +164,16 @@ public class CreateTftImageUtils {
 
     private static BufferedImage getStarByCharacterRarity(int rarity) throws IOException {
         return switch (rarity) {
-            case 1 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "green-star.png"));
-            case 2 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "blue-star.png"));
-            case 3, 4 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "pink-star.png"));
-            case 5, 6, 7, 8, 9 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "gold-star.png"));
-            default -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "grey-star.png"));
+//            case 1 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "green-star.png"));
+//            case 2 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "blue-star.png"));
+//            case 3, 4 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "pink-star.png"));
+//            case 5, 6, 7, 8, 9 -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "gold-star.png"));
+//            default -> ImageIO.read(new File(TFT_STAR_IMAGES_DIR + "grey-star.png"));
+            case 1 -> ImageIO.read(getResourceStreamUrlByFileName(TFT_STAR_IMAGES_DIR + "green-star.png"));
+            case 2 -> ImageIO.read(getResourceStreamUrlByFileName(TFT_STAR_IMAGES_DIR + "blue-star.png"));
+            case 3, 4 -> ImageIO.read(getResourceStreamUrlByFileName(TFT_STAR_IMAGES_DIR + "pink-star.png"));
+            case 5, 6, 7, 8, 9 -> ImageIO.read(getResourceStreamUrlByFileName(TFT_STAR_IMAGES_DIR + "gold-star.png"));
+            default -> ImageIO.read(getResourceStreamUrlByFileName(TFT_STAR_IMAGES_DIR + "grey-star.png"));
         };
     }
 
@@ -176,7 +193,8 @@ public class CreateTftImageUtils {
 
         try {
             for (String item : items) {
-                BufferedImage itemImage = ImageIO.read(new File("tftItemsImages/" + item + ".png"));
+//                BufferedImage itemImage = ImageIO.read(new File(TFT_ITEM_IMAGES_DIR + item + ".png"));
+                BufferedImage itemImage = ImageIO.read(getResourceStreamUrlByFileName(TFT_ITEM_IMAGES_DIR + item + ".png"));
                 itemsImage.add(itemImage);
             }
         } catch (IOException e) {

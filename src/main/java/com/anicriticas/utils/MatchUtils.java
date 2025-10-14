@@ -1,21 +1,21 @@
 package com.anicriticas.utils;
 
 import com.anicriticas.emojis.ChampionsEmojis;
+import com.anicriticas.entities.match.lol.BannedChampion;
+import com.anicriticas.entities.match.lol.LeagueOfLegendsMatch;
 import com.anicriticas.enums.QueueEnum;
+import com.anicriticas.enums.TeamSide;
 import discord4j.rest.util.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class MatchUtils {
@@ -64,8 +64,9 @@ public class MatchUtils {
             case 490 -> QueueEnum.NORMAL_GAME_QUICK_PLAY;
             case 700 -> QueueEnum.CLASH;
             case 1020 -> QueueEnum.ONE_FOR_ALL;
-            case 1700 -> QueueEnum.ARENA;
-            case 1900 -> QueueEnum.URF;
+            case 1090 -> QueueEnum.NORMAL_GAME;
+            case 1700, 1710 -> QueueEnum.ARENA;
+            case 900, 1900 -> QueueEnum.URF;
             default -> QueueEnum.UNKNOWN_GAME_TYPE;
         };
     }
@@ -191,6 +192,20 @@ public class MatchUtils {
         return banList;
     }
 
+    public static List<String> getMatchFoundBansWithEmojis2(LeagueOfLegendsMatch match, TeamSide teamSide) {
+        List<String> banList = new ArrayList<>();
+
+        for (int i = 0; i < match.getBannedChampions().size(); i++) {
+            BannedChampion bannedChampion = match.getBannedChampions().get(i);
+
+            if (bannedChampion.getTeamSide().equals(teamSide)) {
+                banList.add(ChampionsEmojis.getEmojiByChampionName(bannedChampion.getChampion()) + " " + bannedChampion.getChampion());
+            }
+        }
+
+        return banList;
+    }
+
     public static List<String> getMatchFoundRedSideBansWithEmojis(JSONObject matchFound) {
         JSONArray bans = matchFound.getJSONArray("bannedChampions");
 
@@ -273,5 +288,16 @@ public class MatchUtils {
         }
 
         return oneDecimal.format(result) + suffix;
+    }
+
+    public static JSONObject getParticipantByPuuid(String participantUuid, JSONArray participants) {
+        for (int i = 0; i < participants.toList().size(); i++) {
+            JSONObject participant = participants.getJSONObject(i);
+
+            if (participant.get("puuid").equals(participantUuid)) {
+                return participant;
+            }
+        }
+        return null;
     }
 }

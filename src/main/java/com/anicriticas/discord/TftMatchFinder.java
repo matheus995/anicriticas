@@ -1,16 +1,15 @@
 package com.anicriticas.discord;
 
 import com.anicriticas.discord.messagebuilder.MessageBuilder;
-import com.anicriticas.entities.tft.Character;
+import com.anicriticas.entities.match.tft.Character;
 import com.anicriticas.enums.Region;
-import com.anicriticas.service.LolAPIService;
-import com.anicriticas.service.RiotAPIService;
 import com.anicriticas.service.TftAPIService;
 import com.anicriticas.utils.CreateTftImageUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.MessageCreateFields;
 import discord4j.core.spec.MessageEditSpec;
 import discord4j.rest.util.Color;
 import org.json.JSONArray;
@@ -21,11 +20,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-import static com.anicriticas.utils.JsonUtils.getJsonArrayFromUrl;
+import static com.anicriticas.utils.FileUtils.*;
 
 @Component
 public class TftMatchFinder {
@@ -49,12 +47,9 @@ public class TftMatchFinder {
         JSONArray playersInfo;
 
         //TODO buscar buscar.json de players apenas uma vez
-        try {
-            URL urlGeneralEmojiFile = TftMatchFinder.class.getClassLoader().getResource("match-find-players-tft.json");
-            playersInfo = getJsonArrayFromUrl(urlGeneralEmojiFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        URL urlGeneralEmojiFile = getResourceUrlByFileName("match-find-players-tft.json");
+        URL urlGeneralEmojiFile = getResourceUrlByFileName("match-find-players-tft_all.json");
+        playersInfo = getJsonArrayFromUrl(urlGeneralEmojiFile);
 
         for (int i = 0; i < playersInfo.toList().size(); i++) {
             JSONObject playerInfo = playersInfo.getJSONObject(i);
@@ -105,7 +100,7 @@ public class TftMatchFinder {
             for (int i = 0; i < participants.toList().size(); i++) {
                 JSONObject participant = participants.getJSONObject(i);
 
-                JSONObject rankedInfo = getRankingTftSolo(tftAPIService.getRankedStats(participant.getString("summonerId"), matchRegion));
+                JSONObject rankedInfo = getRankingTftSolo(tftAPIService.getRankedStats(participant.getString("puuid"), matchRegion));
                 participantsRankedInfo.put(rankedInfo);
             }
 
@@ -153,14 +148,13 @@ public class TftMatchFinder {
                 assert player != null;
                 createTftImage(finishedMatch, player.getString("puuid"));
 
-                System.out.println("Player info: " + player.toString());
-
                 String fileName = "tftImage.png";
                 EmbedCreateSpec finishedMatchMessageBuilder = EmbedCreateSpec.builder()
                         .color(getColoByPlacement(player.getInt("placement")))
                         .author("TFT Match Finished", "", "")
                         .title(player.getInt("placement") + "th place")
                         .addField(MessageBuilder.getTftMatchInformation(finishedMatch, player))
+                        .addField(MessageBuilder.getTftPlayerTraits(finishedMatch, player.getString("puuid")))
                         .image("attachment://" + fileName)
                         .build();
 
@@ -169,18 +163,41 @@ public class TftMatchFinder {
                 gamesAlreadyMessaged.remove(gameMessaged.getKey());
             }
         }
+    }
 
-//        String fileName = "output.png";
+//    @Scheduled(fixedRate = 180000)
+//    public void TftMatchListener2() {
+//        JSONObject finishedMatch;
+//        JSONArray playersInfo;
+//
+////        JSONObject player = new JSONObject();
+////        player.put("riotIdGameName", "mixmix");
+////        player.put("riotIdTagline", "BR1");
+////        player.put("puuid", "7Mx9gL0O5wWd11gxDZMmg6XdWmWPEJxBsjGjgar7ikvUokcK5ZoFXYv566UcYEgqtG_uN98azOb3pA");
+////        player.put("placement", "2");
+//
+//        URL urlGeneralEmojiFile = getResourceUrlByFileName("match.json");
+//        finishedMatch = getJsonObjectFromUrl(urlGeneralEmojiFile);
+//
+//        URL urlGeneralEmojiFile2 = getResourceUrlByFileName("match-find-players-tft.json");
+//        playersInfo = getJsonArrayFromUrl(urlGeneralEmojiFile2);
+//
+//        JSONObject player = getPlayerToCreateImage(finishedMatch.getJSONObject("info").getJSONArray("participants"), playersInfo);
+//        assert player != null;
+//        createTftImage(finishedMatch, player.getString("puuid"));
+//
+//        String fileName = "tftImage.png";
 //        EmbedCreateSpec finishedMatchMessageBuilder = EmbedCreateSpec.builder()
-//                .color(Color.GREEN)
+//                .color(getColoByPlacement(player.getInt("placement")))
 //                .author("TFT Match Finished", "", "")
-//                .title("4th place")
-////                .addField(MessageBuilder.getMatchInformation(finishedMatch))
+//                .title(player.getInt("placement") + "th place")
+//                .addField(MessageBuilder.getTftMatchInformation(finishedMatch, player))
+//                .addField(MessageBuilder.getTftPlayerTraits(finishedMatch, player.getString("puuid")))
 //                .image("attachment://" + fileName)
 //                .build();
 //
-//        editMessage(Snowflake.of("1343061569294307359"), finishedMatchMessageBuilder, fileName);
-    }
+//        editMessage(Snowflake.of("1407515041724497941"), finishedMatchMessageBuilder, fileName);
+//    }
 
     private void editMessage(Snowflake messageId, EmbedCreateSpec newContent, String fileName) {
         client.getChannelById(Snowflake.of(matchFindChannelId))
@@ -192,6 +209,81 @@ public class TftMatchFinder {
                                 .builder()
                                 .addFile(fileName, new FileInputStream(fileName))
                                 .embeds(Collections.singleton(newContent)).build());
+                    } catch (FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .block();
+    }
+
+//    @Scheduled(fixedRate = 180000)
+//    public void TftMatchListener2() {
+//        JSONObject finishedMatch;
+//        JSONObject player = new JSONObject();
+//        player.put("riotIdGameName", "GameName");
+//        player.put("riotIdTagline", "TagLine");
+//
+//        try {
+//            URL urlGeneralEmojiFile = TftMatchFinder.class.getClassLoader().getResource("match.json");
+//            finishedMatch = getJsonObjectFromUrl(urlGeneralEmojiFile);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        // Nome dos arquivos de imagem
+//        String[] fileNames = {"tftImage.png", "tftImage.png"};
+//
+//        // Lista para armazenar os campos
+//        List<EmbedCreateFields.Field> fields = new ArrayList<>();
+//        // Adicionando os campos dinamicamente
+//        fields.add(MessageBuilder.getTftMatchInformation(finishedMatch, player));
+//        fields.add(MessageBuilder.getTftMatchInformation(finishedMatch, player));
+//
+//        // Lista para armazenar as imagens (ou URLs)
+//        List<String> images = Arrays.asList("attachment://" + fileNames[0], "attachment://" + fileNames[1]);
+//
+//        // Criando o Embed
+//        EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder()
+//                .color(Color.ENDEAVOUR)
+//                .author("TFT Match Finished", "", "")
+//                .title(1 + "th place");
+//
+//        // Adicionando os campos dinamicamente
+//        for (EmbedCreateFields.Field field : fields) {
+//            embedBuilder = embedBuilder.addField("Match Info", String.valueOf(field), false);
+//        }
+//
+//        // Adicionando as imagens dinamicamente
+//        for (String image : images) {
+//            embedBuilder = embedBuilder.image(image);  // Adicionando cada imagem
+//        }
+//
+//        EmbedCreateSpec finishedMatchMessageBuilder = embedBuilder.build();
+//
+//        // Enviar a mensagem com os campos e imagens dinâmicas
+//        editMessage2(Snowflake.of("1357170767652978901"), finishedMatchMessageBuilder, fileNames);
+//    }
+
+    private void editMessage2(Snowflake messageId, EmbedCreateSpec newContent, String[] fileNames) {
+        client.getChannelById(Snowflake.of(matchFindChannelId))
+                .ofType(MessageChannel.class)
+                .flatMap(channel -> channel.getMessageById(messageId))
+                .flatMap(message -> {
+                    try {
+                        // Adicionando arquivos dinamicamente
+                        List<MessageCreateFields.File> fileStreams = new ArrayList<>();
+                        for (String fileName : fileNames) {
+                            fileStreams.add(MessageCreateFields.File.of(fileName, new FileInputStream(fileName)));
+                        }
+
+                        MessageEditSpec.Builder embedBuilder = MessageEditSpec.builder();
+
+                        // Adicionando os campos dinamicamente
+                        for (MessageCreateFields.File file : fileStreams) {
+                            embedBuilder = embedBuilder.addFile(file.name(), file.inputStream());
+                        }
+
+                        return message.edit(embedBuilder.embeds(Collections.singleton(newContent)).build());
                     } catch (FileNotFoundException e) {
                         throw new RuntimeException(e);
                     }

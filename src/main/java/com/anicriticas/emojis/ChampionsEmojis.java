@@ -2,22 +2,18 @@ package com.anicriticas.emojis;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URL;
 
-import static com.anicriticas.utils.JsonUtils.getJsonObjectFromUrl;
+import static com.anicriticas.utils.FileUtils.getJsonObjectFromUrl;
+import static com.anicriticas.utils.FileUtils.getResourceUrlByFileName;
 
 public class ChampionsEmojis {
 
     public static String getEmojiByChampionName(String championName) {
         JSONObject emojis;
 
-        try {
-            URL urlChampionsEmojiFile = ChampionsEmojis.class.getClassLoader().getResource("champions-emojis.json");
-            emojis = getJsonObjectFromUrl(urlChampionsEmojiFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        URL urlChampionsEmojiFile = getResourceUrlByFileName("champions-emojis.json");
+        emojis = getJsonObjectFromUrl(urlChampionsEmojiFile);
 
         if (championName.equalsIgnoreCase("NoBan")) {
             return emojis.getString("NoBan");

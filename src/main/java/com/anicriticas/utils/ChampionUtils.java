@@ -2,22 +2,18 @@ package com.anicriticas.utils;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URL;
 
-import static com.anicriticas.utils.JsonUtils.getJsonObjectFromUrl;
+import static com.anicriticas.utils.FileUtils.getJsonObjectFromUrl;
+import static com.anicriticas.utils.FileUtils.getResourceUrlByFileName;
 
 public class ChampionUtils {
 
     public static String getChampionById(String championId) {
         JSONObject champions;
 
-        try {
-            URL urlChampionsIdFile = ChampionUtils.class.getClassLoader().getResource("champions.json");
-            champions = getJsonObjectFromUrl(urlChampionsIdFile).getJSONObject("data");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        URL urlChampionsIdFile = getResourceUrlByFileName("champions.json");
+        champions = getJsonObjectFromUrl(urlChampionsIdFile).getJSONObject("data");
 
         if (championId.equals("-1")) {
             return "NoBan";

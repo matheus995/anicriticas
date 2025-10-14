@@ -16,14 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.anicriticas.utils.JsonUtils.getJsonArrayFromUrl;
+import static com.anicriticas.utils.FileUtils.getJsonArrayFromUrl;
+import static com.anicriticas.utils.FileUtils.getResourceUrlByFileName;
 
 @Component
 public class MatchFinder {
@@ -49,12 +49,8 @@ public class MatchFinder {
         JSONArray playersInfo;
 
         //TODO buscar buscar.json de players apenas uma vez
-        try {
-            URL urlGeneralEmojiFile = MatchFinder.class.getClassLoader().getResource("match-find-players.json");
-            playersInfo = getJsonArrayFromUrl(urlGeneralEmojiFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        URL urlGeneralEmojiFile = getResourceUrlByFileName("match-find-players.json");
+        playersInfo = getJsonArrayFromUrl(urlGeneralEmojiFile);
 
         for (int i = 0; i < playersInfo.toList().size(); i++) {
             JSONObject playerInfo = playersInfo.getJSONObject(i);
@@ -99,14 +95,41 @@ public class MatchFinder {
                 continue;
             }
 
-            EmbedCreateSpec matchFoundMessageBuilder = EmbedCreateSpec.builder()
-                    .color(Color.CYAN)
-                    .author("Match Found", "", "")
-                    .addField(MessageBuilder.getMatchFoundInformation(gameInfo.getValue()))
-                    .addField(MessageBuilder.getMatchFoundBans(gameInfo.getValue()))
-                    .addField(MessageBuilder.getMatchFoundBlueSidePlayers(gameInfo.getValue().getJSONArray("participants"), true))
-                    .addField(MessageBuilder.getMatchFoundRedSidePlayers(gameInfo.getValue().getJSONArray("participants"), true))
-                    .build();
+            // Id 1700 - 1710 - 4220 = Arena 2v2v2...
+            EmbedCreateSpec matchFoundMessageBuilder;
+            if (gameInfo.getValue().getInt("gameQueueConfigId") == 1700
+                    || gameInfo.getValue().getInt("gameQueueConfigId") == 1710
+                    || gameInfo.getValue().getInt("gameQueueConfigId") == 4220) {
+                JSONArray participants = new JSONArray(gameInfo.getValue().getJSONArray("participants"));
+                JSONArray participantsRankedInfo = new JSONArray();
+
+                Region matchRegion = Region.getRegionByEnumName(gameInfo.getValue().getString("platformId"));
+                for (int i = 0; i < participants.toList().size(); i++) {
+                    JSONObject participant = participants.getJSONObject(i);
+
+                    JSONObject rankedInfo = getRankingLolSoloQ(lolAPIService.getRankedStats(participant.getString("summonerId"), matchRegion));
+                    if (Objects.nonNull(rankedInfo)) {
+                        participantsRankedInfo.put(rankedInfo);
+                    }
+                }
+
+                matchFoundMessageBuilder = EmbedCreateSpec.builder()
+                        .color(Color.CYAN)
+                        .author("Match Found", "", "")
+                        .addField(MessageBuilder.getMatchFoundInformation(gameInfo.getValue()))
+                        .addField(MessageBuilder.getMatchFoundBansArena(gameInfo.getValue()))
+                        .addField(MessageBuilder.getMatchFoundArenaPlayers(gameInfo.getValue().getJSONArray("participants"), participantsRankedInfo, true))
+                        .build();
+            } else {
+                matchFoundMessageBuilder = EmbedCreateSpec.builder()
+                        .color(Color.CYAN)
+                        .author("Match Found", "", "")
+                        .addField(MessageBuilder.getMatchFoundInformation(gameInfo.getValue()))
+                        .addField(MessageBuilder.getMatchFoundBans(gameInfo.getValue()))
+                        .addField(MessageBuilder.getMatchFoundBlueSidePlayers(gameInfo.getValue().getJSONArray("participants"), true))
+                        .addField(MessageBuilder.getMatchFoundRedSidePlayers(gameInfo.getValue().getJSONArray("participants"), true))
+                        .build();
+            }
 
             client.getChannelById(Snowflake.of(matchFindChannelId))
                     .ofType(MessageChannel.class)
@@ -143,15 +166,47 @@ public class MatchFinder {
 
                 String matchResult = MatchUtils.getFinishedMatchResult(playerSide, finishedMatch);
 
-                EmbedCreateSpec finishedMatchMessageBuilder = EmbedCreateSpec.builder()
-                        .color(Objects.requireNonNull(MatchUtils.getFinishedMatchColor(playerSide, finishedMatch)))
-                        .author("Match Finished", "", "")
-                        .title(MessageBuilder.getFinishedMatchResult(matchResult, finishedMatch))
-                        .addField(MessageBuilder.getMatchInformation(finishedMatch))
-                        .addField(Objects.requireNonNull(MessageBuilder.getMatchBans(finishedMatch)))
-                        .addField(MessageBuilder.getMatchPlayersKdaBlueTeam(finishedMatch))
-                        .addField(MessageBuilder.getMatchPlayersKdaRedTeam(finishedMatch))
-                        .build();
+                // ARENA
+                EmbedCreateSpec finishedMatchMessageBuilder;
+                if (finishedMatch.getJSONObject("info").getInt("queueId") == 1700
+                        || finishedMatch.getJSONObject("info").getInt("queueId") == 1710
+                        || finishedMatch.getJSONObject("info").getInt("queueId") == 4220) {
+                    JSONArray finishedMatchParticipants = MatchUtils.getMatchParticipants(finishedMatch);
+
+                    finishedMatchMessageBuilder = EmbedCreateSpec.builder()
+                            .color(Color.VIVID_VIOLET)
+                            .author("Match Finished", "", "")
+                            .title(MessageBuilder.getFinishedMatchResultArena(finishedMatch))
+                            .addField(MessageBuilder.getMatchInformation(finishedMatch))
+                            .addField(Objects.requireNonNull(MessageBuilder.getMatchBansArena(finishedMatch)))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 1, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 2, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 3, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 4, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 5, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 6, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 7, false))
+                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 8, false))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 8,"Poros", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 2, "Minions", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 3, "Scuttles", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 4, "Krugs", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 5, "Raptor", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 6, "Sentinel", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 7, "Wolve", true))
+//                            .addField(MessageBuilder.getArenaTeamStats(finishedMatchParticipants, 8, "Gromp", true))
+                            .build();
+                } else {
+                    finishedMatchMessageBuilder = EmbedCreateSpec.builder()
+                            .color(Objects.requireNonNull(MatchUtils.getFinishedMatchColor(playerSide, finishedMatch)))
+                            .author("Match Finished", "", "")
+                            .title(MessageBuilder.getFinishedMatchResult(matchResult, finishedMatch))
+                            .addField(MessageBuilder.getMatchInformation(finishedMatch))
+                            .addField(Objects.requireNonNull(MessageBuilder.getMatchBans(finishedMatch)))
+                            .addField(MessageBuilder.getMatchPlayersKdaBlueTeam(finishedMatch))
+                            .addField(MessageBuilder.getMatchPlayersKdaRedTeam(finishedMatch))
+                            .build();
+                }
 
                 editMessage(gameMessaged.getValue(), finishedMatchMessageBuilder);
 
@@ -166,5 +221,16 @@ public class MatchFinder {
                 .flatMap(channel -> channel.getMessageById(messageId))
                 .flatMap(message -> message.edit(MessageEditSpec.builder().embeds(Collections.singleton(newContent)).build()))
                 .block();
+    }
+
+    private JSONObject getRankingLolSoloQ(JSONArray lolRankings) {
+        for (int i = 0; i < lolRankings.toList().size(); i++) {
+            JSONObject ranking = lolRankings.getJSONObject(i);
+
+            if (ranking.getString("queueType").equals("RANKED_SOLO_5x5")) {
+                return ranking;
+            }
+        }
+        return null;
     }
 }

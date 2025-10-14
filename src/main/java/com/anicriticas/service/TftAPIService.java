@@ -52,8 +52,8 @@ public class TftAPIService {
         }
     }
 
-    public JSONArray getRankedStats(String summonerId, Region region) {
-        String url = General.getRegionBaseUrl(region) + TftLeagueV1.GET_RANKED_STATS_BY_SUMMONER_ID;
+    public JSONArray getRankedStats(String puuid, Region region) {
+        String url = General.getRegionBaseUrl(region) + TftLeagueV1.GET_RANKED_STATS_BY_PUUID;
 
         final HttpHeaders headers = new HttpHeaders();
         headers.set("X-Riot-Token", riotToken);
@@ -62,7 +62,7 @@ public class TftAPIService {
         final HttpEntity<String> entity = new HttpEntity<>(headers);
 
         Map<String, String> pathParam = new HashMap<>();
-        pathParam.put("summonerId", summonerId);
+        pathParam.put("puuid", puuid);
 
         try {
             ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);

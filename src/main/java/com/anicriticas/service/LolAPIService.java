@@ -1,7 +1,9 @@
 package com.anicriticas.service;
 
 import com.anicriticas.endpoints.*;
+import com.anicriticas.entities.match.lol.LeagueOfLegendsMatch;
 import com.anicriticas.enums.Region;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -183,6 +185,33 @@ public class LolAPIService {
             return null;
         } catch (HttpClientErrorException e) {
             return null;
+        }
+    }
+
+    public LeagueOfLegendsMatch getActiveGamesByPuuid2(String puuid, Region region) {
+        String url = General.getRegionBaseUrl(region) + SpectatorV5.GET_ACTIVE_GAMES_BY_SUMMONER_ID;
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Riot-Token", riotToken);
+        headers.set(HttpHeaders.ACCEPT, "application/json");
+
+        final HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        Map<String, String> pathParam = new HashMap<>();
+        pathParam.put("encryptedPUUID", puuid);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class, pathParam);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readValue(responseEntity.getBody(), LeagueOfLegendsMatch.class);
+            }
+            return null;
+        } catch (HttpClientErrorException e) {
+            return null;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

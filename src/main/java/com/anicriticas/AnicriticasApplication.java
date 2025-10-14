@@ -23,7 +23,8 @@ public class AnicriticasApplication {
 
     @Bean
     public GatewayDiscordClient gatewayDiscordClient() {
-        return DiscordClientBuilder.create(System.getenv("DISCORD_TOKEN")).build()
+//        return DiscordClientBuilder.create(System.getenv("DISCORD_TOKEN")).build()
+        return DiscordClientBuilder.create(System.getenv("DISCORD_TOKEN_HMLG")).build()
                 .gateway()
                 .setInitialPresence(ignore -> ClientPresence.online(ClientActivity.listening("/profile /lastmatch")))
                 .login()

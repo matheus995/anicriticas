@@ -2,22 +2,18 @@ package com.anicriticas.emojis;
 
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URL;
 
-import static com.anicriticas.utils.JsonUtils.getJsonObjectFromUrl;
+import static com.anicriticas.utils.FileUtils.getJsonObjectFromUrl;
+import static com.anicriticas.utils.FileUtils.getResourceUrlByFileName;
 
 public class ElosEmojis {
 
     public static String getEmojiByElo(String elo) {
         JSONObject emojis;
 
-        try {
-            URL urlElosEmojiFile = ElosEmojis.class.getClassLoader().getResource("elos-emojis.json");
-            emojis = getJsonObjectFromUrl(urlElosEmojiFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        URL urlElosEmojiFile = getResourceUrlByFileName("elos-emojis.json");
+        emojis = getJsonObjectFromUrl(urlElosEmojiFile);
 
         for (String eloString : emojis.keySet()) {
             if (eloString.equalsIgnoreCase(elo)) {

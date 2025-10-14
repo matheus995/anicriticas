@@ -11,6 +11,7 @@ public enum QueueEnum {
     FLEX("Flex"),
     ARAM("Aram"),
     CLASH("Clash"),
+    NORMAL_GAME("Normal Game"),
     NORMAL_GAME_QUICK_PLAY("Normal Game (Quick Play)"),
     NORMAL_GAME_DRAFT_PICK("Normal Game (Draft Pick)"),
     ARENA("Arena"),
@@ -20,4 +21,5 @@ public enum QueueEnum {
     UNKNOWN_GAME_TYPE("Unknown Game Type");
 
     private final String queueDescription;
+
 }
