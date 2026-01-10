@@ -1,6 +1,5 @@
 package com.anicriticas.entities;
 
-import com.anicriticas.enums.Ranking;
 import com.anicriticas.enums.Region;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +14,6 @@ public class Player {
     private String riotNickName;
     private Region region;
     private String matchId;
-    private Ranking ranking;
     private int accountLevel;
 
 }

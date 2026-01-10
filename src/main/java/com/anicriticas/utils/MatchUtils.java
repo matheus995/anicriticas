@@ -3,8 +3,11 @@ package com.anicriticas.utils;
 import com.anicriticas.emojis.ChampionsEmojis;
 import com.anicriticas.entities.match.lol.BannedChampion;
 import com.anicriticas.entities.match.lol.LeagueOfLegendsMatch;
+import com.anicriticas.entities.valorant.Match;
+import com.anicriticas.entities.valorant.Player;
 import com.anicriticas.enums.QueueEnum;
 import com.anicriticas.enums.TeamSide;
+import com.anicriticas.model.Players;
 import discord4j.rest.util.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -253,6 +257,28 @@ public class MatchUtils {
         return null;
     }
 
+    public static Color getValorantFinishedMatchColor(Players player, Match match) {
+
+         if (player.getTeam().equalsIgnoreCase(match.getMatchResult().getWinner())) {
+            return Color.GREEN;
+        } else if (match.getMatchResult().getWinner().equalsIgnoreCase("Draw")) {
+            return Color.YELLOW;
+        }
+
+        return Color.RED;
+    }
+
+    public static String getValorantFinishedMatchResult(Players player, Match match) {
+
+        if (player.getTeam().equalsIgnoreCase(match.getMatchResult().getWinner())) {
+            return "Win";
+        } else if (match.getMatchResult().getWinner().equalsIgnoreCase("Draw")) {
+            return "Draw";
+        }
+
+        return "Lose";
+    }
+
     public static Color getColorByMatchResult(boolean matchResult) {
         if (matchResult) {
             return Color.GREEN;
@@ -299,5 +325,26 @@ public class MatchUtils {
             }
         }
         return null;
+    }
+
+    public static boolean isDateInRange(String date, Long dateRange) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+        LocalDateTime dateToVerify = LocalDateTime.parse(date, formatter);
+
+        LocalDateTime dateNow = LocalDateTime.now();
+
+        LocalDateTime dateDaysEarlier = dateNow.minusDays(dateRange);
+
+        return dateToVerify.isAfter(dateDaysEarlier);
+    }
+
+    public static String getValorantFinishedMatchScore(Match match, String matchResult) {
+
+        if (matchResult.equalsIgnoreCase("Lose")) {
+            return match.getMatchResult().getRoundsLoser() + " - " + match.getMatchResult().getRoundsWinner();
+        }
+
+        return match.getMatchResult().getRoundsWinner() + " - " + match.getMatchResult().getRoundsLoser();
+
     }
 }

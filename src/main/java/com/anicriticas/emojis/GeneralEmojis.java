@@ -12,7 +12,7 @@ public class GeneralEmojis {
     public static String getEmojiByName(String emojiName) {
         JSONObject emojis;
 
-        URL urlGeneralEmojiFile = getResourceUrlByFileName("general-emojis.json");
+        URL urlGeneralEmojiFile = getResourceUrlByFileName("emojis/general-emojis.json");
         emojis = getJsonObjectFromUrl(urlGeneralEmojiFile);
 
         for (String emoji : emojis.keySet()) {

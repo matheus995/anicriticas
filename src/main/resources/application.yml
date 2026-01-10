@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: anicriticas
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/anicriticas?useTimezone=true&serverTimezone=UTC
+    username: postgres
+    password: admin
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    open-in-view: false
+
+  logging:
+    level:
+#      root: WARN
+      com.example.demo: DEBUG

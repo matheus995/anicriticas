@@ -12,7 +12,7 @@ public class ChampionsEmojis {
     public static String getEmojiByChampionName(String championName) {
         JSONObject emojis;
 
-        URL urlChampionsEmojiFile = getResourceUrlByFileName("champions-emojis.json");
+        URL urlChampionsEmojiFile = getResourceUrlByFileName("emojis/champions-emojis.json");
         emojis = getJsonObjectFromUrl(urlChampionsEmojiFile);
 
         if (championName.equalsIgnoreCase("NoBan")) {

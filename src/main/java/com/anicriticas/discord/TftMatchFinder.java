@@ -42,7 +42,7 @@ public class TftMatchFinder {
     private final String matchFindChannelId = System.getenv("MATCH_FIND_TFT_CHANNEL_ID");
 
     // Deixar fixedRate parametrizável
-    @Scheduled(fixedRate = 180000)
+//    @Scheduled(fixedRate = 180000)
     public void TftMatchListener() {
         JSONArray playersInfo;
 

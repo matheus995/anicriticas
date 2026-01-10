@@ -44,7 +44,7 @@ public class MatchFinder {
     private final String matchFindChannelId = System.getenv("MATCH_FIND_CHANNEL_ID");
 
     // Deixar fixedRate parametrizável
-    @Scheduled(fixedRate = 180000)
+//    @Scheduled(fixedRate = 180000)
     public void MatchListener() {
         JSONArray playersInfo;
 

@@ -7,9 +7,12 @@ import discord4j.core.object.presence.ClientPresence;
 import discord4j.rest.RestClient;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.Duration;
 
 @SpringBootApplication
 @EnableScheduling
@@ -36,9 +39,19 @@ public class AnicriticasApplication {
         return client.getRestClient();
     }
 
+//    @Bean
+//    public RestTemplate restTemplate() {
+//        return new RestTemplate();
+//    }
+
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder
+                // Configura o Connection Timeout para 10 segundos
+                .setConnectTimeout(Duration.ofSeconds(10))
+                // Configura o Read Timeout para 30 segundos
+                .setReadTimeout(Duration.ofSeconds(10))
+                .build();
     }
 
 }
